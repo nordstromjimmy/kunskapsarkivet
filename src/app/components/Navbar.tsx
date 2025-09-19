@@ -5,9 +5,6 @@ import { categories } from "../lib/sampleData";
 import { Suspense } from "react";
 
 export function Navbar() {
-  const searchParams = useSearchParams();
-  const active = decodeURIComponent(searchParams.get("k") || "");
-
   return (
     <header className="sticky top-0 z-30 bg-white/90 backdrop-blur">
       <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
@@ -37,20 +34,31 @@ export function Navbar() {
         <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 overflow-x-auto">
           <div className="flex gap-3 py-4">
             <Suspense fallback={<div>Loading...</div>}>
-              <CategoryLink label="Alla" href="/" active={active === ""} />
-              {categories.map((c) => (
-                <CategoryLink
-                  key={c}
-                  label={c}
-                  href={`/?k=${encodeURIComponent(c)}`}
-                  active={active === c}
-                />
-              ))}
+              <CategoryScroller />
             </Suspense>
           </div>
         </div>
       </div>
     </header>
+  );
+}
+
+function CategoryScroller() {
+  const searchParams = useSearchParams();
+  const active = decodeURIComponent(searchParams.get("k") ?? "");
+
+  return (
+    <>
+      <CategoryLink label="Alla" href="/" active={active === ""} />
+      {categories.map((c) => (
+        <CategoryLink
+          key={c}
+          label={c}
+          href={`/?k=${encodeURIComponent(c)}`}
+          active={active === c}
+        />
+      ))}
+    </>
   );
 }
 
