@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { categories } from "../lib/sampleData";
+import { Suspense } from "react";
 
 export function Navbar() {
   const searchParams = useSearchParams();
@@ -35,7 +36,9 @@ export function Navbar() {
       <div className="border-t-1">
         <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 overflow-x-auto">
           <div className="flex gap-3 py-4">
-            <CategoryLink label="Alla" href="/" active={active === ""} />
+            <Suspense fallback={<div>Loading...</div>}>
+              <CategoryLink label="Alla" href="/" active={active === ""} />
+            </Suspense>
             {categories.map((c) => (
               <CategoryLink
                 key={c}
