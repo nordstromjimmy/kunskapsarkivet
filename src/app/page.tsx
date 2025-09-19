@@ -17,6 +17,9 @@ export default async function HomePage() {
   return (
     <section className="space-y-8">
       <header className="max-w-none">
+        <h1 className="text-2xl sm:text-1xl font-semibold text-center text-red-400 tracking-tight mt-6">
+          Denna hemsida är under uppbyggnad!
+        </h1>
         <h1 className="text-xl sm:text-1xl font-semibold tracking-tight mt-6">
           Utforska gammal kunskap
         </h1>

@@ -3,7 +3,7 @@ import "./globals.css";
 import { Navbar } from "./components/Navbar";
 
 export const metadata: Metadata = {
-  title: "Kunskapsarkivet",
+  title: "Kunskapsarvet",
   description:
     "Ett levande svenskt kunskapsblock – delad äldre kunskap för framtiden.",
 };
