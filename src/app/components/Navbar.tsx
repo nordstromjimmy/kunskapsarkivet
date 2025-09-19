@@ -1,10 +1,9 @@
 "use client";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { categories } from "../lib/sampleData";
 
 export function Navbar() {
-  const pathname = usePathname();
   const searchParams = useSearchParams();
   const active = decodeURIComponent(searchParams.get("k") || "");
 
