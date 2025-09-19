@@ -38,15 +38,15 @@ export function Navbar() {
           <div className="flex gap-3 py-4">
             <Suspense fallback={<div>Loading...</div>}>
               <CategoryLink label="Alla" href="/" active={active === ""} />
+              {categories.map((c) => (
+                <CategoryLink
+                  key={c}
+                  label={c}
+                  href={`/?k=${encodeURIComponent(c)}`}
+                  active={active === c}
+                />
+              ))}
             </Suspense>
-            {categories.map((c) => (
-              <CategoryLink
-                key={c}
-                label={c}
-                href={`/?k=${encodeURIComponent(c)}`}
-                active={active === c}
-              />
-            ))}
           </div>
         </div>
       </div>
