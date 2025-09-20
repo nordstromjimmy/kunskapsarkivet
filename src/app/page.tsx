@@ -37,8 +37,6 @@ export default async function HomePage({ searchParams }: PageProps) {
   const { data: topics, error } = await query;
   if (error) throw error;
 
-  const list = topics ?? [];
-
   return (
     <section className="space-y-10">
       {/* Hero */}
