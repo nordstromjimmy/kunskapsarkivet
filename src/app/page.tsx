@@ -1,27 +1,43 @@
 import { PostCard } from "./components/PostCard";
-import { posts } from "./lib/sampleData";
+import { supabaseServer } from "./lib/supabase/server";
+import { categories as VALID_CATEGORIES } from "./model/Post";
 
-function dailySeed() {
-  const d = new Date();
-  const s = Number(
-    `${d.getFullYear()}${(d.getMonth() + 1).toString().padStart(2, "0")}${d.getDate().toString().padStart(2, "0")}`
-  );
-  const x = Math.sin(s) * 10000;
-  return x - Math.floor(x);
-}
-function shuffleDeterministic<T>(arr: T[]) {
-  const a = [...arr];
-  let r = dailySeed();
-  for (let i = a.length - 1; i > 0; i--) {
-    r = (r * 9301 + 49297) % 233280;
-    const j = Math.floor((r / 233280) * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
+export const dynamic = "force-dynamic"; // ensure no implicit caching
+
+type PageProps = {
+  searchParams?: Promise<{ k?: string }>;
+};
+
+function normalizeCategory(k?: string) {
+  if (!k) return undefined;
+  try {
+    const decoded = decodeURIComponent(k);
+    return VALID_CATEGORIES.includes(decoded) ? decoded : undefined;
+  } catch {
+    return undefined;
   }
-  return a;
 }
 
-export default async function HomePage() {
-  const random = shuffleDeterministic(posts).slice(0, 6);
+export default async function HomePage({ searchParams }: PageProps) {
+  const activeCategory = normalizeCategory((await searchParams)?.k);
+
+  const supabase = supabaseServer();
+
+  let query = supabase
+    .from("topics")
+    .select("id, slug, title, excerpt, category, author_display, created_at")
+    .eq("is_published", true)
+    .order("created_at", { ascending: false })
+    .limit(6);
+
+  if (activeCategory) {
+    query = query.eq("category", activeCategory);
+  }
+
+  const { data: topics, error } = await query;
+  if (error) throw error;
+
+  const list = topics ?? [];
 
   return (
     <section className="space-y-10">
@@ -46,8 +62,19 @@ export default async function HomePage() {
 
       {/* Cards */}
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {random.map((p) => (
-          <PostCard key={p.id} post={p} />
+        {(topics ?? []).map((t) => (
+          <PostCard
+            key={t.id}
+            post={{
+              id: t.id,
+              slug: t.slug,
+              title: t.title,
+              excerpt: t.excerpt ?? "",
+              category: t.category,
+              author: t.author_display ?? "Okänd",
+              date: t.created_at,
+            }}
+          />
         ))}
       </div>
     </section>

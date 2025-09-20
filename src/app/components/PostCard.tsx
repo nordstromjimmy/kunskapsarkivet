@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { Post } from "../lib/sampleData";
 import { categoryColors } from "../lib/colors";
+import { Post } from "../model/Post";
 
 export function PostCard({ post }: { post: Post }) {
   const pal = categoryColors[post.category] ?? {
@@ -35,8 +35,8 @@ export function PostCard({ post }: { post: Post }) {
 
         <h3 className="mt-1 text-lg font-semibold leading-snug tracking-tight">
           <Link
-            href={`/post/${post.id}`}
-            className="outline-none focus-visible:ring-2 focus-visible:ring-slate-300 rounded"
+            href={`/post/${(post as any).slug ?? post.id}`}
+            className="hover:underline"
           >
             {post.title}
           </Link>
@@ -47,7 +47,7 @@ export function PostCard({ post }: { post: Post }) {
         <div className="mt-4 flex items-center justify-between text-xs text-slate-700">
           <span className="font-medium">{post.author}</span>
           <Link
-            href={`/post/${post.id}`}
+            href={`/post/${(post as any).slug ?? post.id}`}
             className="rounded-md bg-slate-900 text-white px-3 py-1.5 text-xs transition-colors hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300"
           >
             Läs mer

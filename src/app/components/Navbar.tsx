@@ -1,8 +1,8 @@
 "use client";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { categories } from "../lib/sampleData";
 import { Suspense } from "react";
+import { categories } from "../model/Post";
 
 export function Navbar() {
   return (
