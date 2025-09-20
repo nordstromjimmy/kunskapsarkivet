@@ -47,8 +47,8 @@ export default async function HomePage({ searchParams }: PageProps) {
             Utforska gammal kunskap – dela för framtiden
           </h1>
           <p className="mx-auto mt-3 max-w-2xl text-center text-slate-600">
-            Några blandade inlägg från arkivet. Sidan byggs löpande – fler ämnen
-            läggs till efterhand.
+            Några blandade inlägg från arkivet visas nedan. <br></br> Sidan
+            byggs löpande – fler ämnen läggs till efterhand.
           </p>
           <div className="mt-6 flex justify-center">
             <span className="rounded-full bg-rose-100 px-3 py-1 text-sm font-medium text-rose-700">
