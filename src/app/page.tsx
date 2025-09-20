@@ -6,7 +6,7 @@ function dailySeed() {
   const s = Number(
     `${d.getFullYear()}${(d.getMonth() + 1).toString().padStart(2, "0")}${d.getDate().toString().padStart(2, "0")}`
   );
-  let x = Math.sin(s) * 10000;
+  const x = Math.sin(s) * 10000;
   return x - Math.floor(x);
 }
 function shuffleDeterministic<T>(arr: T[]) {
