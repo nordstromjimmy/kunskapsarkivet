@@ -47,12 +47,12 @@ export function Footer() {
               </a>
             </li>
             <li>
-              <Link href="/om#riktlinjer" className="hover:text-slate-900">
+              <Link href="#" className="hover:text-slate-900">
                 Riktlinjer & moderering
               </Link>
             </li>
             <li>
-              <Link href="/om#sekretess" className="hover:text-slate-900">
+              <Link href="#" className="hover:text-slate-900">
                 Sekretess
               </Link>
             </li>
