@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { categories } from "../model/Post";
+import Image from "next/image";
 import type { User } from "@supabase/supabase-js";
 
 export function Navbar({ user }: { user: User | null }) {
@@ -28,9 +29,16 @@ export function Navbar({ user }: { user: User | null }) {
           {/* Brand */}
           <Link
             href="/"
-            className="font-semibold tracking-tight text-2xl hover:opacity-80"
+            className="flex items-center gap-2 font-semibold tracking-tight text-2xl hover:opacity-80"
           >
-            Kunskapsarvet
+            <Image
+              src="/logo.png"
+              alt="Kunskapsarvet logo"
+              width={40}
+              height={40}
+              priority
+            />
+            <span>Kunskapsarvet</span>
           </Link>
 
           {/* Desktop actions */}
