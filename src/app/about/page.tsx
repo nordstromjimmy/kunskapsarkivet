@@ -52,8 +52,7 @@ export default function AboutPage() {
       </h2>
       <ul>
         <li>
-          Håll en respektfull ton. Fokus på <em>kunskap</em> – inte på att
-          debattera personer eller grupper.
+          Håll en respektfull ton. Fokus på <em>kunskap</em>
         </li>
         <li>
           Var källmedveten: skriv vem du lärde dig av, var i landet, och ungefär
@@ -70,17 +69,7 @@ export default function AboutPage() {
       </h2>
       <p>
         Vi samlar så lite persondata som möjligt. Du kan när som helst begära
-        att ett inlägg tas bort. Mediafiler lagras för att vara tillgängliga för
-        framtiden; hör av dig om du vill uppdatera eller ersätta dem.
-      </p>
-
-      <h2 id="bidra">
-        <strong>Bidra</strong>
-      </h2>
-      <p>
-        Vill du hjälpa till som korrekturläsare, fotograf eller lokal kontakt
-        med föreningar och hembygdsgårdar? Hör av dig:{" "}
-        <a href="mailto:info@kunskapsarvet.se">info@kunskapsarvet.se</a>.
+        att ett inlägg tas bort.
       </p>
     </article>
   );
