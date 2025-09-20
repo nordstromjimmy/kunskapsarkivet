@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export function Footer() {
   return (
-    <footer className="border-t mt-16">
+    <footer className="border-t mt-26">
       <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-10 grid gap-8 sm:grid-cols-3">
         <div>
           <div className="font-semibold">Kunskapsarvet</div>

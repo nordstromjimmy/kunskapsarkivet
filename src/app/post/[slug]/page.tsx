@@ -1,4 +1,4 @@
-import { supabaseServer } from "@/app/lib/supabase/server";
+import { createClientSA } from "@/app/lib/supabase/actions";
 import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -9,9 +9,9 @@ export default async function TopicPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const supabase = supabaseServer();
+  const supabase = createClientSA();
 
-  const { data, error } = await supabase
+  const { data, error } = await (await supabase)
     .from("topics")
     .select("*")
     .eq("slug", slug)

@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
-import { supabaseServerAdmin } from "../lib/supabase/server";
 import { slugify } from "../lib/utils/slugify";
+import { createClientSA } from "../lib/supabase/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -52,12 +52,12 @@ async function insertTopic(formData: FormData) {
   if (!title || !body_md) throw new Error("Titel och innehåll krävs");
 
   const baseSlug = slugify(title);
-  const supabase = supabaseServerAdmin();
+  const supabase = createClientSA();
 
   // ensure unique slug
   let slug = baseSlug;
   for (let i = 1; i < 50; i++) {
-    const { data: existing } = await supabase
+    const { data: existing } = await (await supabase)
       .from("topics")
       .select("id")
       .eq("slug", slug)
@@ -66,7 +66,7 @@ async function insertTopic(formData: FormData) {
     slug = `${baseSlug}-${i + 1}`;
   }
 
-  const { error } = await supabase.from("topics").insert({
+  const { error } = await (await supabase).from("topics").insert({
     slug,
     title,
     excerpt,

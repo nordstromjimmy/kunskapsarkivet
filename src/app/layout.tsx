@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Navbar } from "./components/Navbar";
 import { Footer } from "./components/Footer";
+import { createClientRSC } from "./lib/supabase/rsc";
 
 export const metadata: Metadata = {
   title: "Kunskapsarvet - Utforska gammal kunskap",
@@ -9,11 +10,16 @@ export const metadata: Metadata = {
     "Ett levande svenskt kunskapsblock – delad äldre kunskap för framtiden.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const supabase = await createClientRSC();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return (
     <html lang="sv">
       <head>
@@ -21,10 +27,10 @@ export default function RootLayout({
           defer
           data-domain="kunskapsarvet.se"
           src="https://plausible.io/js/script.js"
-        ></script>
+        />
       </head>
       <body className="antialiased bg-white text-slate-900">
-        <Navbar />
+        <Navbar user={user ?? null} />
         <main className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
           {children}
         </main>

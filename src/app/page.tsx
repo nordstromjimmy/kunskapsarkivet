@@ -1,6 +1,6 @@
 import { PostCard } from "./components/PostCard";
-import { supabaseServer } from "./lib/supabase/server";
 import { categories as VALID_CATEGORIES } from "./model/Post";
+import { createClientSA } from "./lib/supabase/actions";
 
 export const dynamic = "force-dynamic"; // ensure no implicit caching
 
@@ -21,9 +21,9 @@ function normalizeCategory(k?: string) {
 export default async function HomePage({ searchParams }: PageProps) {
   const activeCategory = normalizeCategory((await searchParams)?.k);
 
-  const supabase = supabaseServer();
+  const supabase = createClientSA();
 
-  let query = supabase
+  let query = (await supabase)
     .from("topics")
     .select("id, slug, title, excerpt, category, author_display, created_at")
     .eq("is_published", true)
