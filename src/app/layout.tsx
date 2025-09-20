@@ -5,9 +5,27 @@ import { Footer } from "./components/Footer";
 import { createClientRSC } from "./lib/supabase/rsc";
 
 export const metadata: Metadata = {
-  title: "Kunskapsarvet - Utforska gammal kunskap",
+  title: "Kunskapsarvet – Utforska gammal kunskap",
   description:
     "Ett levande svenskt kunskapsblock – delad äldre kunskap för framtiden.",
+  metadataBase: new URL("https://kunskapsarvet.se"),
+  openGraph: {
+    title: "Kunskapsarvet",
+    description: "Utforska och bevara äldre kunskap för framtiden.",
+    url: "https://kunskapsarvet.se",
+    siteName: "Kunskapsarvet",
+    locale: "sv_SE",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Kunskapsarvet",
+    description: "Utforska och bevara äldre kunskap för framtiden.",
+    creator: "@dittkonto", // if you have one
+  },
+  alternates: {
+    canonical: "https://kunskapsarvet.se",
+  },
 };
 
 export default async function RootLayout({
