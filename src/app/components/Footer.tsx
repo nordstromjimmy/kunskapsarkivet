@@ -46,16 +46,6 @@ export function Footer() {
                 info@kunskapsarvet.se
               </a>
             </li>
-            <li>
-              <Link href="#" className="hover:text-slate-900">
-                Riktlinjer & moderering
-              </Link>
-            </li>
-            <li>
-              <Link href="#" className="hover:text-slate-900">
-                Sekretess
-              </Link>
-            </li>
           </ul>
         </div>
       </div>
