@@ -81,8 +81,8 @@ export default async function EditTopicPage({
   params,
   searchParams,
 }: {
-  params: { slug: string };
-  searchParams: { err?: string };
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ err?: string }>;
 }) {
   const { slug } = await params;
   const { err } = await searchParams;
