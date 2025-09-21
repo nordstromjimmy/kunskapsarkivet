@@ -73,11 +73,11 @@ async function insertTopic(formData: FormData) {
 
 // --- Page (Server Component)
 export default async function NewTopicPage({
-  params,
+  searchParams,
 }: {
-  params: { error?: string };
+  searchParams: Promise<{ error?: string }>;
 }) {
-  const { error } = await params;
+  const { error } = await searchParams;
 
   const supabase = await createClientRSC();
   const {
