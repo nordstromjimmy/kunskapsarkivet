@@ -45,9 +45,16 @@ export function Navbar({ user }: { user: User | null }) {
           <nav className="hidden sm:flex items-center gap-5 text-sm text-grey-600">
             {user ? (
               <>
-                <span className="text-slate-600 truncate max-w-[14rem]">
-                  {user.email}
-                </span>
+                <Link href="/profile" className="hover:text-slate-900">
+                  Profil
+                </Link>
+                {/* NEW: Nytt ämne */}
+                <Link
+                  href="/new"
+                  className="rounded-md px-3 py-2 hover:bg-slate-50 cursor-pointer"
+                >
+                  Nytt ämne
+                </Link>
                 <button
                   onClick={handleLogout}
                   className="hover:bg-slate-800 bg-slate-900 text-white px-3 py-2 rounded-lg cursor-pointer"
@@ -86,14 +93,28 @@ export function Navbar({ user }: { user: User | null }) {
         <div
           className={[
             "sm:hidden overflow-hidden transition-[max-height] duration-200",
-            open ? "max-h-48" : "max-h-0",
+            open ? "max-h-60" : "max-h-0",
           ].join(" ")}
         >
           <div className="mt-2 rounded-lg bg-white p-3 shadow-sm">
             <div className="flex flex-col gap-2 text-sm">
               {user ? (
                 <>
-                  <span className="px-3 py-2 text-slate-600">{user.email}</span>
+                  <Link
+                    href="/profile"
+                    className="rounded-md px-3 py-2 hover:bg-slate-50"
+                    onClick={() => setOpen(false)}
+                  >
+                    Profil
+                  </Link>
+                  {/* NEW: Nytt ämne (mobile) */}
+                  <Link
+                    href="/new"
+                    className="rounded-md px-3 py-2 hover:bg-slate-50"
+                    onClick={() => setOpen(false)}
+                  >
+                    Nytt ämne
+                  </Link>
                   <button
                     onClick={() => {
                       setOpen(false);
@@ -176,7 +197,7 @@ function CategoryLink({
         "whitespace-nowrap rounded-full border px-3 py-1.5 text-sm",
         active
           ? "border-slate-900 bg-slate-900 text-white"
-          : "border-slate-200 hover:bg-slate-50",
+          : "border-slate-2 00 hover:bg-slate-50",
       ].join(" ")}
     >
       {label}

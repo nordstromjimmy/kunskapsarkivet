@@ -1,72 +1,59 @@
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import { slugify } from "../lib/utils/slugify";
+import { createClientRSC } from "../lib/supabase/rsc";
 import { createClientSA } from "../lib/supabase/actions";
+import { categories } from "../model/Post";
 
 export const dynamic = "force-dynamic";
 
-const CATEGORIES = [
-  "Slöjd & Hantverk",
-  "Mat & Förvaring",
-  "Livet på Landet",
-  "Folktro & Berättelser",
-  "Språk & Ord",
-  "Hus & Hem",
-] as const;
-
-export default function NewTopicPage() {
-  if (process.env.NODE_ENV !== "development") return notFound();
-  return (
-    <section className="max-w-2xl">
-      <h1 className="text-xl font-semibold tracking-tight">
-        Lägg till nytt ämne (endast utveckling)
-      </h1>
-      <p className="mt-2 text-sm text-slate-600">
-        Formuläret sparar direkt i Supabase.
-      </p>
-      <DevOnlyBanner />
-      <NewTopicForm />
-    </section>
-  );
-}
-
-function DevOnlyBanner() {
-  return (
-    <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
-      Den här sidan visas bara i utvecklingsläget och använder service-nyckeln
-      på servern.
-    </div>
-  );
-}
-
+// --- Server Action: insert topic as the logged-in user
 async function insertTopic(formData: FormData) {
   "use server";
-  if (process.env.NODE_ENV !== "development") notFound();
 
-  const title = String(formData.get("title") || "").slice(0, 200);
-  const excerpt = String(formData.get("excerpt") || "").slice(0, 500);
-  const category = String(formData.get("category") || CATEGORIES[0]);
-  const body_md = String(formData.get("body_md") || "");
-  const author_display = String(formData.get("author_display") || "");
-  const is_published = formData.get("is_published") === "on";
+  const supabase = await createClientSA();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  if (!title || !body_md) throw new Error("Titel och innehåll krävs");
-
-  const baseSlug = slugify(title);
-  const supabase = createClientSA();
-
-  // ensure unique slug
-  let slug = baseSlug;
-  for (let i = 1; i < 50; i++) {
-    const { data: existing } = await (await supabase)
-      .from("topics")
-      .select("id")
-      .eq("slug", slug)
-      .limit(1);
-    if (!existing || existing.length === 0) break;
-    slug = `${baseSlug}-${i + 1}`;
+  if (!user) {
+    redirect("/login?next=/new");
   }
 
-  const { error } = await (await supabase).from("topics").insert({
+  const title = String(formData.get("title") || "")
+    .slice(0, 200)
+    .trim();
+  const excerpt = String(formData.get("excerpt") || "")
+    .slice(0, 500)
+    .trim();
+  const category = String(formData.get("category") || categories[0]).trim();
+  const body_md = String(formData.get("body_md") || "").trim();
+  const author_display = String(formData.get("author_display") || "").trim();
+  const is_published = formData.get("is_published") === "on";
+
+  if (!title || !body_md) {
+    redirect(`/new?error=${encodeURIComponent("Titel och innehåll krävs")}`);
+  }
+
+  // Create a unique slug with ONE query: fetch similar slugs and compute next suffix in code
+  const baseSlug = slugify(title);
+  const { data: siblings, error: siblingsErr } = await supabase
+    .from("topics")
+    .select("slug")
+    .like("slug", `${baseSlug}%`);
+
+  if (siblingsErr) {
+    redirect(`/new?error=${encodeURIComponent(siblingsErr.message)}`);
+  }
+
+  const taken = new Set((siblings ?? []).map((s) => s.slug));
+  let slug = baseSlug;
+  if (taken.has(baseSlug)) {
+    let i = 2;
+    while (taken.has(`${baseSlug}-${i}`)) i++;
+    slug = `${baseSlug}-${i}`;
+  }
+
+  const { error: insertErr } = await supabase.from("topics").insert({
     slug,
     title,
     excerpt,
@@ -74,28 +61,87 @@ async function insertTopic(formData: FormData) {
     body_md,
     author_display,
     is_published,
+    author_id: user.id, // <- ownership
   });
 
-  if (error) throw error;
+  if (insertErr) {
+    redirect(`/new?error=${encodeURIComponent(insertErr.message)}`);
+  }
+
   redirect(`/post/${slug}`);
 }
 
-function NewTopicForm() {
+// --- Page (Server Component)
+export default async function NewTopicPage({
+  searchParams,
+}: {
+  searchParams: { error?: string };
+}) {
+  const { error } = await searchParams;
+  const supabase = await createClientRSC();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const disabled = !user;
+
   return (
-    <form action={insertTopic} className="mt-6 space-y-4">
+    <section className="max-w-2xl">
+      <h1 className="text-xl font-semibold tracking-tight">
+        Lägg till nytt ämne
+      </h1>
+      <p className="mt-2 text-sm text-slate-600">
+        Du behöver vara inloggad för att publicera nya ämnen.
+      </p>
+
+      {error && (
+        <p className="mt-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+          {error}
+        </p>
+      )}
+
+      {!user && (
+        <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+          Du är inte inloggad.{" "}
+          <a className="underline" href="/login?next=/new">
+            Logga in
+          </a>{" "}
+          för att kunna spara.
+        </div>
+      )}
+
+      <NewTopicForm action={insertTopic} disabled={disabled} />
+    </section>
+  );
+}
+
+// --- Form (Server Component wrapper passing the action)
+function NewTopicForm({
+  action,
+  disabled,
+}: {
+  action: (fd: FormData) => Promise<void>;
+  disabled: boolean;
+}) {
+  return (
+    <form action={action} className="mt-6 space-y-4">
       <div>
         <label className="block text-sm mb-1">Titel</label>
         <input
           name="title"
           required
+          disabled={disabled}
           className="w-full rounded-lg border px-3 py-2"
         />
       </div>
 
       <div>
         <label className="block text-sm mb-1">Kategori</label>
-        <select name="category" className="w-full rounded-lg border px-3 py-2">
-          {CATEGORIES.map((c) => (
+        <select
+          name="category"
+          disabled={disabled}
+          className="w-full rounded-lg border px-3 py-2"
+        >
+          {categories.map((c) => (
             <option key={c} value={c}>
               {c}
             </option>
@@ -107,13 +153,18 @@ function NewTopicForm() {
         <label className="block text-sm mb-1">
           Utdrag (kort sammanfattning)
         </label>
-        <input name="excerpt" className="w-full rounded-lg border px-3 py-2" />
+        <input
+          name="excerpt"
+          disabled={disabled}
+          className="w-full rounded-lg border px-3 py-2"
+        />
       </div>
 
       <div>
         <label className="block text-sm mb-1">Författare att visa</label>
         <input
           name="author_display"
+          disabled={disabled}
           className="w-full rounded-lg border px-3 py-2"
           placeholder="t.ex. Karin, Härnösand"
         />
@@ -124,6 +175,7 @@ function NewTopicForm() {
         <textarea
           name="body_md"
           required
+          disabled={disabled}
           className="w-full rounded-lg border px-3 py-2 h-56"
         />
       </div>
@@ -135,13 +187,17 @@ function NewTopicForm() {
           name="is_published"
           className="h-4 w-4"
           defaultChecked
+          disabled={disabled}
         />
         <label htmlFor="pub" className="text-sm">
           Publicera direkt
         </label>
       </div>
 
-      <button className="rounded-lg bg-slate-900 text-white px-4 py-2 text-sm hover:bg-slate-800 cursor-pointer">
+      <button
+        disabled={disabled}
+        className="rounded-lg bg-slate-900 text-white px-4 py-2 text-sm hover:bg-slate-800 disabled:opacity-50 cursor-pointer"
+      >
         Spara
       </button>
     </form>
