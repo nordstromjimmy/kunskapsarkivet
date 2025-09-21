@@ -35,7 +35,7 @@ export const dynamic = "force-dynamic";
 export default async function TopicPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
 
