@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 // POST /api/favorites/:topicId  -> add favorite
 export async function POST(
-  _: Request,
+  _req: Request,
   { params }: { params: Promise<{ topicId: string }> }
 ) {
   const { topicId } = await params;
@@ -36,7 +36,7 @@ export async function POST(
 
 // DELETE /api/favorites/:topicId -> remove favorite
 export async function DELETE(
-  _: Request,
+  _req: Request,
   { params }: { params: Promise<{ topicId: string }> }
 ) {
   const { topicId } = await params;
