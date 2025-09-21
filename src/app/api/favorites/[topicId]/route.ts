@@ -5,7 +5,7 @@ import { NextRequest } from "next/server";
 // POST /api/favorites/:topicId  -> add favorite
 export async function POST(
   _req: NextRequest,
-  { params }: { params: { topicId: string } }
+  { params }: { params: Promise<{ topicId: string }> }
 ) {
   const { topicId } = await params;
 
@@ -38,7 +38,7 @@ export async function POST(
 // DELETE /api/favorites/:topicId -> remove favorite
 export async function DELETE(
   _req: NextRequest,
-  { params }: { params: { topicId: string } }
+  { params }: { params: Promise<{ topicId: string }> }
 ) {
   const { topicId } = await params;
   const supabase = await createClientRoute();
