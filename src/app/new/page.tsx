@@ -90,9 +90,11 @@ export default async function NewTopicPage({
       <h1 className="text-xl font-semibold tracking-tight">
         Lägg till nytt ämne
       </h1>
-      <p className="mt-2 text-sm text-slate-600">
-        Du behöver vara inloggad för att publicera nya ämnen.
-      </p>
+      {!user && (
+        <p className="mt-2 text-sm text-slate-600">
+          Du behöver vara inloggad för att publicera nya ämnen.
+        </p>
+      )}
 
       {error && (
         <p className="mt-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
