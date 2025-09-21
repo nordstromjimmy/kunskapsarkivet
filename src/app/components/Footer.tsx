@@ -21,11 +21,6 @@ export function Footer() {
                 Hem
               </Link>
             </li>
-            {/*             <li>
-              <Link href="/submit" className="hover:text-slate-900">
-                Lägg till
-              </Link>
-            </li> */}
             <li>
               <Link href="/about" className="hover:text-slate-900">
                 Om

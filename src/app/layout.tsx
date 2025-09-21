@@ -58,9 +58,9 @@ export default async function RootLayout({
           src="https://plausible.io/js/script.js"
         />
       </head>
-      <body className="antialiased bg-white text-slate-900">
+      <body className="min-h-screen flex flex-col bg-white text-slate-900">
         <Navbar user={user ?? null} />
-        <main className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
+        <main className="flex-1 container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
           {children}
         </main>
         <Footer />

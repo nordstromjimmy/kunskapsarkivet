@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClientRSC } from "../../lib/supabase/rsc";
+import { Mail } from "lucide-react";
+import { Calendar } from "lucide-react";
 
 export default async function ProfilePage() {
   const supabase = await createClientRSC();
@@ -37,8 +39,22 @@ export default async function ProfilePage() {
   return (
     <section className="mx-auto max-w-3xl space-y-8">
       <header>
-        <h1 className="text-xl font-semibold">Din profil</h1>
-        <p className="text-slate-600 text-sm">{user.email}</p>
+        <h1 className="text-2xl font-semibold mb-2">Din profil</h1>
+        <h2 className="text-lg font-medium">Konto</h2>
+
+        {/* Flex row: icon + email */}
+        <div className="flex items-center gap-2 mt-2">
+          <Mail size={20} className="text-red-500" />
+          <p className="text-slate-600 text-sm">{user.email}</p>
+        </div>
+
+        <div className="flex items-center gap-2 mt-2">
+          <Calendar size={20} className="text-red-500" />
+          <p className="text-slate-600 text-sm">
+            Registrerad –{" "}
+            {new Date(user.created_at).toISOString().split("T")[0]}
+          </p>
+        </div>
       </header>
 
       <div className="space-y-4">
@@ -50,11 +66,12 @@ export default async function ProfilePage() {
             {topics!.map((t) => (
               <li
                 key={t.id}
-                className="flex items-center justify-between rounded-lg border px-3 py-2"
+                className="flex items-center justify-between rounded-lg border border-slate-300 px-3 py-2"
               >
                 <Link href={`/post/${t.slug}`} className="hover:underline">
                   {t.title}
                 </Link>
+
                 <span className="text-xs text-slate-500">
                   {new Date(t.created_at).toLocaleDateString("sv-SE")}
                 </span>
@@ -73,7 +90,7 @@ export default async function ProfilePage() {
             {drafts!.map((t) => (
               <li
                 key={t.id}
-                className="flex items-center justify-between rounded-lg border px-3 py-2"
+                className="flex items-center justify-between rounded-lg border border-slate-300 px-3 py-2"
               >
                 <Link href={`/post/${t.slug}`} className="hover:underline">
                   {t.title}
@@ -96,7 +113,7 @@ export default async function ProfilePage() {
             {favoriteTopics.map((t: any) => (
               <li
                 key={t.id}
-                className="flex items-center justify-between rounded-lg border px-3 py-2"
+                className="flex items-center justify-between rounded-lg border border-slate-300 px-3 py-2"
               >
                 <Link href={`/post/${t.slug}`} className="hover:underline">
                   {t.title}{" "}

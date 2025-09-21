@@ -85,7 +85,7 @@ export default async function TopicPage({
         <div className="mt-4 mb-4 flex flex-wrap items-center gap-3">
           <Link
             href={`/post/${slug}/edit`}
-            className="rounded-md border px-3 py-1.5 text-sm hover:bg-slate-50"
+            className="rounded-md border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-50"
           >
             Redigera
           </Link>
