@@ -1,4 +1,4 @@
-import { createClientRoute } from "@/app/lib/supabase/route";
+import { createClientRoute } from "@/lib/supabase/route";
 import { NextResponse } from "next/server";
 
 // POST /api/favorites/:topicId  -> add favorite

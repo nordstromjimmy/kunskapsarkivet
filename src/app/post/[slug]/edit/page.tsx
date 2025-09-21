@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
-import { createClientRSC } from "@/app/lib/supabase/rsc";
-import { createClientSA } from "@/app/lib/supabase/actions";
-import { slugify } from "@/app/lib/utils/slugify";
+import { createClientRSC } from "@/lib/supabase/rsc";
+import { createClientSA } from "@/lib/supabase/actions";
+import { slugify } from "@/lib/utils/slugify";
 import { categories } from "@/app/model/Post";
 import Link from "next/link";
 

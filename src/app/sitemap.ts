@@ -1,6 +1,6 @@
 // app/sitemap.ts
 import type { MetadataRoute } from "next";
-import { createClientRSC } from "./lib/supabase/rsc";
+import { createClientRSC } from "../lib/supabase/rsc";
 
 export const revalidate = 3600; // rebuild sitemap at most once per hour
 

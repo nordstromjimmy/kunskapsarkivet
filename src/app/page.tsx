@@ -1,6 +1,6 @@
 import { PostCard } from "./components/PostCard";
 import { categories as VALID_CATEGORIES } from "./model/Post";
-import { createClientSA } from "./lib/supabase/actions";
+import { createClientSA } from "../lib/supabase/actions";
 
 export const dynamic = "force-dynamic"; // ensure no implicit caching
 

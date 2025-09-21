@@ -1,7 +1,7 @@
 import { DeleteButton } from "@/app/components/DeleteButton";
 import { FavoriteButton } from "@/app/components/FavoriteButton";
-import { createClientSA } from "@/app/lib/supabase/actions";
-import { createClientRSC } from "@/app/lib/supabase/rsc";
+import { createClientSA } from "@/lib/supabase/actions";
+import { createClientRSC } from "@/lib/supabase/rsc";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 

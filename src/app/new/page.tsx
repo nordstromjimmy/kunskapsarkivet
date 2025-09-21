@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
-import { slugify } from "../lib/utils/slugify";
-import { createClientRSC } from "../lib/supabase/rsc";
-import { createClientSA } from "../lib/supabase/actions";
+import { slugify } from "../../lib/utils/slugify";
+import { createClientRSC } from "../../lib/supabase/rsc";
+import { createClientSA } from "../../lib/supabase/actions";
 import { categories } from "../model/Post";
 
 export const dynamic = "force-dynamic";

@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { createClientSA } from "../lib/supabase/actions";
+import { createClientSA } from "../../lib/supabase/actions";
 
 export const dynamic = "force-dynamic";
 

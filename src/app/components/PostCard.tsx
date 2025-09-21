@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { categoryColors } from "../lib/colors";
+import { categoryColors } from "../../lib/colors";
 import { Post } from "../model/Post";
 
 export function PostCard({ post }: { post: Post }) {

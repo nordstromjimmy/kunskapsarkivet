@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { createClientRSC } from "../lib/supabase/rsc";
+import { createClientRSC } from "../../lib/supabase/rsc";
 
 export default async function ProfilePage() {
   const supabase = await createClientRSC();

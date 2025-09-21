@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Navbar } from "./components/Navbar";
 import { Footer } from "./components/Footer";
-import { createClientRSC } from "./lib/supabase/rsc";
+import { createClientRSC } from "../lib/supabase/rsc";
 
 export const metadata: Metadata = {
   title: "Kunskapsarvet – Utforska gammal kunskap",
