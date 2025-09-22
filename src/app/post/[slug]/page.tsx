@@ -41,6 +41,11 @@ export default async function TopicPage({
 
   const supabase = await createClientRSC();
 
+  // Get current user
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   // Fetch topic (only published or owned by user — depending on RLS)
   const { data: topic, error } = await supabase
     .from("topics")
@@ -52,10 +57,30 @@ export default async function TopicPage({
   if (error) throw error;
   if (!topic) return notFound();
 
-  // Get current user
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const isOwner = !!user && topic.author_id === user.id;
+
+  const { data: media } = await supabase
+    .from("topic_media")
+    .select("bucket, path, alt, created_at")
+    .eq("topic_id", topic.id)
+    .order("created_at", { ascending: true });
+
+  // Fetch images
+  const withUrls =
+    (await Promise.all(
+      (media ?? []).map(async (m) => {
+        if (m.bucket === "topic-media-public") {
+          const { data } = supabase.storage.from(m.bucket).getPublicUrl(m.path);
+          return { ...m, url: data.publicUrl };
+        } else {
+          if (!isOwner) return { ...m, url: "" }; // non-owner can’t see private
+          const { data } = await supabase.storage
+            .from(m.bucket)
+            .createSignedUrl(m.path, 60);
+          return { ...m, url: data?.signedUrl ?? "" };
+        }
+      })
+    )) || [];
 
   // Check if this topic is already in favorites (if logged in)
   let initialFav = false;
@@ -69,8 +94,6 @@ export default async function TopicPage({
 
     initialFav = !!fav;
   }
-
-  const isOwner = !!user && topic.author_id === user.id;
 
   return (
     <article className="prose max-w-none">
@@ -95,16 +118,31 @@ export default async function TopicPage({
             <input type="hidden" name="slug" value={slug} />
             <DeleteButton />
           </form>
+          {user && (
+            <div className="mx-2">
+              <FavoriteButton topicId={topic.id} initial={initialFav} />
+            </div>
+          )}
         </div>
       )}
       <hr />
       <div className="whitespace-pre-wrap">{topic.body_md}</div>
-
-      {user && (
-        <div className="mt-6">
-          <FavoriteButton topicId={topic.id} initial={initialFav} />
-        </div>
-      )}
+      {withUrls
+        .filter((x) => x.url)
+        .map((m, i) => (
+          <figure key={i} className="my-6">
+            <img
+              src={m.url}
+              alt={m.alt || ""}
+              className="rounded-lg border max-w-full h-auto"
+            />
+            {m.alt && (
+              <figcaption className="mt-2 text-xs text-slate-500">
+                {m.alt}
+              </figcaption>
+            )}
+          </figure>
+        ))}
     </article>
   );
 }

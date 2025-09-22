@@ -4,6 +4,8 @@ import { createClientSA } from "@/lib/supabase/actions";
 import { slugify } from "@/lib/utils/slugify";
 import { categories } from "@/app/model/Post";
 import Link from "next/link";
+import { uploadImageAction } from "../upload-image.action";
+import { TopicMediaList } from "@/app/components/TopicMediaList";
 
 export const dynamic = "force-dynamic";
 
@@ -30,7 +32,7 @@ async function updateTopicAction(formData: FormData) {
   } = await supabase.auth.getUser();
   if (!user) redirect(`/login?next=/post/${originalSlug}/edit`);
 
-  // Compute final slug: allow changing slug, ensure uniqueness
+  // Compute final slug (ensure uniqueness if changed)
   let finalSlug = originalSlug;
   if (updateSlug && updateSlug !== originalSlug) {
     const base = slugify(updateSlug);
@@ -41,7 +43,7 @@ async function updateTopicAction(formData: FormData) {
 
     if (siblingsErr) {
       redirect(
-        `/post/${originalSlug}/edit?error=${encodeURIComponent(siblingsErr.message)}`
+        `/post/${originalSlug}/edit?err=${encodeURIComponent(siblingsErr.message)}`
       );
     }
     const taken = new Set((siblings ?? []).map((s) => s.slug));
@@ -53,7 +55,7 @@ async function updateTopicAction(formData: FormData) {
     }
   }
 
-  // Update only if owner (RLS also enforces this)
+  // Update (RLS also enforces owner)
   const { error } = await supabase
     .from("topics")
     .update({
@@ -70,7 +72,7 @@ async function updateTopicAction(formData: FormData) {
 
   if (error) {
     redirect(
-      `/post/${originalSlug}/edit?error=${encodeURIComponent(error.message)}`
+      `/post/${originalSlug}/edit?err=${encodeURIComponent(error.message)}`
     );
   }
 
@@ -82,7 +84,7 @@ export default async function EditTopicPage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ err?: string }>;
+  searchParams: Promise<{ err: string }>;
 }) {
   const { slug } = await params;
   const { err } = await searchParams;
@@ -92,7 +94,7 @@ export default async function EditTopicPage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Fetch the topic (RLS should let owner see drafts)
+  // Fetch topic (RLS lets owner see drafts)
   const { data: topic, error } = await supabase
     .from("topics")
     .select("*")
@@ -102,9 +104,9 @@ export default async function EditTopicPage({
   if (error) throw error;
   if (!topic) return notFound();
 
-  // Owner gate (extra safety; RLS also covers it)
+  // Owner gate (extra safety)
   if (!user || topic.author_id !== user.id) {
-    redirect(`/post/${slug}`); // not owner → bounce to view page
+    redirect(`/post/${slug}`);
   }
 
   return (
@@ -117,6 +119,7 @@ export default async function EditTopicPage({
         </p>
       )}
 
+      {/* ===== Edit form (standalone) ===== */}
       <form action={updateTopicAction} className="mt-6 space-y-4">
         <input type="hidden" name="original_slug" value={slug} />
 
@@ -196,7 +199,10 @@ export default async function EditTopicPage({
         </label>
 
         <div className="flex items-center gap-3">
-          <button className="rounded-lg bg-slate-900 text-white px-4 py-2 text-sm hover:bg-slate-800 cursor-pointer">
+          <button
+            className="rounded-lg bg-slate-900 text-white px-4 py-2 text-sm hover:bg-slate-800 cursor-pointer"
+            type="submit"
+          >
             Spara ändringar
           </button>
           <Link
@@ -207,6 +213,38 @@ export default async function EditTopicPage({
           </Link>
         </div>
       </form>
+
+      {/* ===== Images section (separate forms only) ===== */}
+      <section className="mt-10 space-y-4">
+        <h2 className="text-lg font-medium">Bilder</h2>
+
+        {/* Upload form (NOT inside another form) */}
+        <form
+          action={uploadImageAction}
+          className="space-y-3"
+          //encType="multipart/form-data"
+        >
+          <input type="hidden" name="topic_id" value={topic.id} />
+          <input type="hidden" name="slug" value={topic.slug} />
+          <div>
+            <label className="block text-sm mb-1">Välj bild</label>
+            <input type="file" name="file" accept="image/*" required />
+          </div>
+          <div>
+            <label className="block text-sm mb-1">Alt-text</label>
+            <input name="alt" className="w-full rounded-lg border px-3 py-2" />
+          </div>
+          <button
+            className="rounded-md border px-3 py-1.5 text-sm"
+            type="submit"
+          >
+            Ladda upp
+          </button>
+        </form>
+
+        {/* List current images */}
+        <TopicMediaList topicId={topic.id} />
+      </section>
     </section>
   );
 }
