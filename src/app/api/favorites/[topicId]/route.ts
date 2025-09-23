@@ -1,4 +1,4 @@
-import { createClientRoute } from "@/lib/supabase/route";
+import { supabaseServer } from "@/server/db/supabase-server";
 import { NextResponse } from "next/server";
 
 // POST /api/favorites/:topicId  -> add favorite
@@ -8,7 +8,7 @@ export async function POST(
 ) {
   const { topicId } = await params;
 
-  const supabase = await createClientRoute();
+  const supabase = await supabaseServer();
 
   const {
     data: { user },
@@ -40,7 +40,7 @@ export async function DELETE(
   { params }: { params: Promise<{ topicId: string }> }
 ) {
   const { topicId } = await params;
-  const supabase = await createClientRoute();
+  const supabase = await supabaseServer();
 
   const {
     data: { user },

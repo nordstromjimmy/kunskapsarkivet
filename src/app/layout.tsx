@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Navbar } from "./components/Navbar";
-import { Footer } from "./components/Footer";
-import { createClientRSC } from "../lib/supabase/rsc";
+import { supabaseServer } from "@/server/db/supabase-server";
+import { Navbar } from "@/components/ui/Navbar";
+import { Footer } from "@/components/ui/Footer";
 
 export const metadata: Metadata = {
   title: "Kunskapsarvet – Utforska gammal kunskap",
@@ -44,7 +44,7 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createClientRSC();
+  const supabase = await supabaseServer();
   const {
     data: { user },
   } = await supabase.auth.getUser();

@@ -1,77 +1,9 @@
-import { redirect } from "next/navigation";
-import { slugify } from "../../lib/utils/slugify";
-import { createClientRSC } from "../../lib/supabase/rsc";
-import { createClientSA } from "../../lib/supabase/actions";
-import { categories } from "../model/Post";
+import { supabaseServer } from "@/server/db/supabase-server";
+import { categories } from "@/lib/schema/post";
+import { createTopicFromFormAction } from "@/actions/topics";
 
 export const dynamic = "force-dynamic";
 
-// --- Server Action: insert topic as the logged-in user
-async function insertTopic(formData: FormData) {
-  "use server";
-
-  const supabase = await createClientSA();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login?next=/new");
-  }
-
-  const title = String(formData.get("title") || "")
-    .slice(0, 200)
-    .trim();
-  const excerpt = String(formData.get("excerpt") || "")
-    .slice(0, 500)
-    .trim();
-  const category = String(formData.get("category") || categories[0]).trim();
-  const body_md = String(formData.get("body_md") || "").trim();
-  const author_display = String(formData.get("author_display") || "").trim();
-  const is_published = formData.get("is_published") === "on";
-
-  if (!title || !body_md) {
-    redirect(`/new?error=${encodeURIComponent("Titel och innehåll krävs")}`);
-  }
-
-  // Create a unique slug with ONE query: fetch similar slugs and compute next suffix in code
-  const baseSlug = slugify(title);
-  const { data: siblings, error: siblingsErr } = await supabase
-    .from("topics")
-    .select("slug")
-    .like("slug", `${baseSlug}%`);
-
-  if (siblingsErr) {
-    redirect(`/new?error=${encodeURIComponent(siblingsErr.message)}`);
-  }
-
-  const taken = new Set((siblings ?? []).map((s) => s.slug));
-  let slug = baseSlug;
-  if (taken.has(baseSlug)) {
-    let i = 2;
-    while (taken.has(`${baseSlug}-${i}`)) i++;
-    slug = `${baseSlug}-${i}`;
-  }
-
-  const { error: insertErr } = await supabase.from("topics").insert({
-    slug,
-    title,
-    excerpt,
-    category,
-    body_md,
-    author_display,
-    is_published,
-    author_id: user.id, // <- ownership
-  });
-
-  if (insertErr) {
-    redirect(`/new?error=${encodeURIComponent(insertErr.message)}`);
-  }
-
-  redirect(`/post/${slug}`);
-}
-
-// --- Page (Server Component)
 export default async function NewTopicPage({
   searchParams,
 }: {
@@ -79,10 +11,11 @@ export default async function NewTopicPage({
 }) {
   const { error } = await searchParams;
 
-  const supabase = await createClientRSC();
+  const supabase = await supabaseServer(); // ← if your helper is sync, drop await
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
   const disabled = !user;
 
   return (
@@ -90,6 +23,7 @@ export default async function NewTopicPage({
       <h1 className="text-xl font-semibold tracking-tight">
         Lägg till nytt ämne
       </h1>
+
       {!user && (
         <p className="mt-2 text-sm text-slate-600">
           Du behöver vara inloggad för att publicera nya ämnen.
@@ -112,12 +46,11 @@ export default async function NewTopicPage({
         </div>
       )}
 
-      <NewTopicForm action={insertTopic} disabled={disabled} />
+      <NewTopicForm action={createTopicFromFormAction} disabled={disabled} />
     </section>
   );
 }
 
-// --- Form (Server Component wrapper passing the action)
 function NewTopicForm({
   action,
   disabled,
@@ -128,7 +61,7 @@ function NewTopicForm({
   return (
     <form action={action} className="mt-6 space-y-4">
       <div>
-        <label className="block text-sm mb-1">Titel</label>
+        <label className="mb-1 block text-sm">Titel</label>
         <input
           name="title"
           required
@@ -138,7 +71,7 @@ function NewTopicForm({
       </div>
 
       <div>
-        <label className="block text-sm mb-1">Kategori</label>
+        <label className="mb-1 block text-sm">Kategori</label>
         <select
           name="category"
           disabled={disabled}
@@ -153,7 +86,7 @@ function NewTopicForm({
       </div>
 
       <div>
-        <label className="block text-sm mb-1">
+        <label className="mb-1 block text-sm">
           Utdrag (kort sammanfattning)
         </label>
         <input
@@ -164,7 +97,7 @@ function NewTopicForm({
       </div>
 
       <div>
-        <label className="block text-sm mb-1">Författare att visa</label>
+        <label className="mb-1 block text-sm">Författare att visa</label>
         <input
           name="author_display"
           disabled={disabled}
@@ -174,12 +107,12 @@ function NewTopicForm({
       </div>
 
       <div>
-        <label className="block text-sm mb-1">Innehåll (Markdown)</label>
+        <label className="mb-1 block text-sm">Innehåll (Markdown)</label>
         <textarea
           name="body_md"
           required
           disabled={disabled}
-          className="w-full rounded-lg border px-3 py-2 h-56"
+          className="h-56 w-full rounded-lg border px-3 py-2"
         />
       </div>
 
@@ -199,7 +132,7 @@ function NewTopicForm({
 
       <button
         disabled={disabled}
-        className="rounded-lg bg-slate-900 text-white px-4 py-2 text-sm hover:bg-slate-800 disabled:opacity-50 cursor-pointer"
+        className="cursor-pointer rounded-lg bg-slate-900 px-4 py-2 text-sm text-white hover:bg-slate-800 disabled:opacity-50"
       >
         Spara
       </button>

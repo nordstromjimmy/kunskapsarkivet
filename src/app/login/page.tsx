@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { createClientSA } from "../../lib/supabase/actions";
+import { supabaseServer } from "@/server/db/supabase-server";
 
 export const dynamic = "force-dynamic";
 
@@ -9,7 +9,7 @@ async function login(formData: FormData) {
   const password = String(formData.get("password") || "");
   const next = String(formData.get("next") || "/");
 
-  const supabase = await createClientSA();
+  const supabase = await supabaseServer();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) redirect(`/login?error=${encodeURIComponent(error.message)}`);
 

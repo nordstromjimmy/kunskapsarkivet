@@ -1,6 +1,6 @@
 // app/sitemap.ts
 import type { MetadataRoute } from "next";
-import { createClientRSC } from "../lib/supabase/rsc";
+import { supabaseServer } from "@/server/db/supabase-server";
 
 export const revalidate = 3600; // rebuild sitemap at most once per hour
 
@@ -18,7 +18,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   // Dynamic routes from Supabase
-  const supabase = await createClientRSC();
+  const supabase = await supabaseServer();
   const { data: topics, error } = await supabase
     .from("topics")
     .select("slug, updated_at")

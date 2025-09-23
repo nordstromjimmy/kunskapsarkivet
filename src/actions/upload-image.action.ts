@@ -1,5 +1,5 @@
 // app/post/[slug]/upload-image.action.ts
-import { createClientSA } from "@/lib/supabase/actions";
+import { supabaseServer } from "@/server/db/supabase-server";
 import { redirect } from "next/navigation";
 import crypto from "node:crypto";
 
@@ -11,7 +11,7 @@ export async function uploadImageAction(formData: FormData) {
   const slug = String(formData.get("slug") || "");
   if (!file || !topicId) return;
 
-  const supabase = await createClientSA();
+  const supabase = await supabaseServer();
   const {
     data: { user },
   } = await supabase.auth.getUser();

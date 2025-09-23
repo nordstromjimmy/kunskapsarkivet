@@ -1,11 +1,11 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { createClientRSC } from "../../lib/supabase/rsc";
+import { supabaseServer } from "@/server/db/supabase-server";
 import { Mail } from "lucide-react";
 import { Calendar } from "lucide-react";
 
 export default async function ProfilePage() {
-  const supabase = await createClientRSC();
+  const supabase = await supabaseServer();
   const {
     data: { user },
   } = await supabase.auth.getUser();

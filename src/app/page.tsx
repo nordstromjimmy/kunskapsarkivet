@@ -1,8 +1,10 @@
-import { PostCard } from "./components/PostCard";
-import { categories as VALID_CATEGORIES } from "./model/Post";
-import { createClientSA } from "../lib/supabase/actions";
+import { isCategory } from "../lib/schema/post";
+import { PostCard } from "./post/[slug]/_components/PostCard";
+import { listTopics, listTopicsByCategory } from "@/server/repos/topics";
 
-export const dynamic = "force-dynamic"; // ensure no implicit caching
+// Choose one strategy:
+// export const dynamic = 'force-dynamic'          // always dynamic
+export const revalidate = 60; // or cache for 60s; actions will revalidatePath()
 
 type PageProps = {
   searchParams?: Promise<{ k?: string }>;
@@ -12,7 +14,7 @@ function normalizeCategory(k?: string) {
   if (!k) return undefined;
   try {
     const decoded = decodeURIComponent(k);
-    return VALID_CATEGORIES.includes(decoded) ? decoded : undefined;
+    return isCategory(decoded) ? decoded : undefined;
   } catch {
     return undefined;
   }
@@ -21,21 +23,9 @@ function normalizeCategory(k?: string) {
 export default async function HomePage({ searchParams }: PageProps) {
   const activeCategory = normalizeCategory((await searchParams)?.k);
 
-  const supabase = createClientSA();
-
-  let query = (await supabase)
-    .from("topics")
-    .select("id, slug, title, excerpt, category, author_display, created_at")
-    .eq("is_published", true)
-    .order("created_at", { ascending: false })
-    .limit(6);
-
-  if (activeCategory) {
-    query = query.eq("category", activeCategory);
-  }
-
-  const { data: topics, error } = await query;
-  if (error) throw error;
+  const topics = activeCategory
+    ? await listTopicsByCategory(activeCategory, { limit: 6 })
+    : await listTopics({ limit: 6 });
 
   return (
     <section className="space-y-10">
@@ -60,17 +50,17 @@ export default async function HomePage({ searchParams }: PageProps) {
 
       {/* Cards */}
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {(topics ?? []).map((t) => (
+        {topics.map((t) => (
           <PostCard
             key={t.id}
             post={{
               id: t.id,
               slug: t.slug,
               title: t.title,
-              excerpt: t.excerpt ?? "",
+              excerpt: t.excerpt,
               category: t.category,
-              author: t.author_display ?? "Okänd",
-              date: t.created_at,
+              author: t.author || "Okänd",
+              date: t.date,
             }}
           />
         ))}

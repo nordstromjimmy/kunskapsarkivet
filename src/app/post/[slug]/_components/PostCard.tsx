@@ -1,6 +1,5 @@
+import { categoryColors, Post } from "@/lib/schema/post";
 import Link from "next/link";
-import { categoryColors } from "../../lib/colors";
-import { Post } from "../model/Post";
 
 export function PostCard({ post }: { post: Post }) {
   const pal = categoryColors[post.category] ?? {

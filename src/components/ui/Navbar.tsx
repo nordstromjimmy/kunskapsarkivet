@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
-import { categories } from "../model/Post";
+import { categories } from "../../lib/schema/post";
 import Image from "next/image";
 import type { User } from "@supabase/supabase-js";
 

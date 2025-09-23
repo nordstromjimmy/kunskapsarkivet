@@ -1,10 +1,9 @@
 // app/post/[slug]/delete-image.action.ts
-import { createClientSA } from "@/lib/supabase/actions";
-import { redirect } from "next/navigation";
+import { supabaseServer } from "@/server/db/supabase-server";
 
 export async function deleteImageAction(formData: FormData) {
   "use server";
-  const supabase = await createClientSA();
+  const supabase = await supabaseServer();
 
   const media_id = String(formData.get("media_id") || "");
   const bucket = String(formData.get("bucket") || "");

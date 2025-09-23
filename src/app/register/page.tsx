@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { createClientSA } from "../../lib/supabase/actions";
+import { supabaseServer } from "@/server/db/supabase-server";
 
 export const dynamic = "force-dynamic";
 
@@ -8,7 +8,7 @@ async function register(formData: FormData) {
   const email = String(formData.get("email") || "");
   const password = String(formData.get("password") || "");
 
-  const supabase = await createClientSA();
+  const supabase = await supabaseServer();
   const { data, error } = await supabase.auth.signUp({ email, password });
   if (error) redirect(`/register?error=${encodeURIComponent(error.message)}`);
 

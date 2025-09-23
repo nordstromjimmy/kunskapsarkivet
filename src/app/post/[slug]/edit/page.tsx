@@ -1,101 +1,31 @@
-import { notFound, redirect } from "next/navigation";
-import { createClientRSC } from "@/lib/supabase/rsc";
-import { createClientSA } from "@/lib/supabase/actions";
-import { slugify } from "@/lib/utils/slugify";
-import { categories } from "@/app/model/Post";
+// app/post/[slug]/edit/page.tsx
 import Link from "next/link";
-import { uploadImageAction } from "../upload-image.action";
-import { TopicMediaList } from "@/app/components/TopicMediaList";
+import { notFound, redirect } from "next/navigation";
+import { supabaseServer } from "@/server/db/supabase-server";
+import { categories } from "@/lib/schema/post";
+import { updateTopicFromFormAction } from "@/actions/topics";
+import { uploadImageAction } from "@/actions/upload-image.action"; // keep your path if different
+import { TopicMediaList } from "../_components/TopicMediaList";
 
 export const dynamic = "force-dynamic";
-
-// --- Server Action: update (owner only)
-async function updateTopicAction(formData: FormData) {
-  "use server";
-
-  const originalSlug = String(formData.get("original_slug") || "");
-  const title = String(formData.get("title") || "")
-    .slice(0, 200)
-    .trim();
-  const excerpt = String(formData.get("excerpt") || "")
-    .slice(0, 500)
-    .trim();
-  const category = String(formData.get("category") || categories[0]).trim();
-  const body_md = String(formData.get("body_md") || "").trim();
-  const author_display = String(formData.get("author_display") || "").trim();
-  const is_published = formData.get("is_published") === "on";
-  const updateSlug = String(formData.get("slug") || "").trim();
-
-  const supabase = await createClientSA();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect(`/login?next=/post/${originalSlug}/edit`);
-
-  // Compute final slug (ensure uniqueness if changed)
-  let finalSlug = originalSlug;
-  if (updateSlug && updateSlug !== originalSlug) {
-    const base = slugify(updateSlug);
-    const { data: siblings, error: siblingsErr } = await supabase
-      .from("topics")
-      .select("slug")
-      .like("slug", `${base}%`);
-
-    if (siblingsErr) {
-      redirect(
-        `/post/${originalSlug}/edit?err=${encodeURIComponent(siblingsErr.message)}`
-      );
-    }
-    const taken = new Set((siblings ?? []).map((s) => s.slug));
-    finalSlug = base;
-    if (taken.has(base)) {
-      let i = 2;
-      while (taken.has(`${base}-${i}`)) i++;
-      finalSlug = `${base}-${i}`;
-    }
-  }
-
-  // Update (RLS also enforces owner)
-  const { error } = await supabase
-    .from("topics")
-    .update({
-      slug: finalSlug,
-      title,
-      excerpt,
-      category,
-      body_md,
-      author_display,
-      is_published,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("slug", originalSlug);
-
-  if (error) {
-    redirect(
-      `/post/${originalSlug}/edit?err=${encodeURIComponent(error.message)}`
-    );
-  }
-
-  redirect(`/post/${finalSlug}`);
-}
 
 export default async function EditTopicPage({
   params,
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ err: string }>;
+  searchParams: Promise<{ err?: string }>;
 }) {
   const { slug } = await params;
   const { err } = await searchParams;
 
-  const supabase = await createClientRSC();
+  const sb = await supabaseServer();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await sb.auth.getUser();
 
   // Fetch topic (RLS lets owner see drafts)
-  const { data: topic, error } = await supabase
+  const { data: topic, error } = await sb
     .from("topics")
     .select("*")
     .eq("slug", slug)
@@ -104,7 +34,7 @@ export default async function EditTopicPage({
   if (error) throw error;
   if (!topic) return notFound();
 
-  // Owner gate (extra safety)
+  // Owner gate (belt + suspenders with RLS)
   if (!user || topic.author_id !== user.id) {
     redirect(`/post/${slug}`);
   }
@@ -119,12 +49,12 @@ export default async function EditTopicPage({
         </p>
       )}
 
-      {/* ===== Edit form (standalone) ===== */}
-      <form action={updateTopicAction} className="mt-6 space-y-4">
+      {/* ===== Edit form ===== */}
+      <form action={updateTopicFromFormAction} className="mt-6 space-y-4">
         <input type="hidden" name="original_slug" value={slug} />
 
         <div>
-          <label className="block text-sm mb-1">Titel</label>
+          <label className="mb-1 block text-sm">Titel</label>
           <input
             name="title"
             defaultValue={topic.title}
@@ -134,7 +64,7 @@ export default async function EditTopicPage({
         </div>
 
         <div>
-          <label className="block text-sm mb-1">Slug (valfritt)</label>
+          <label className="mb-1 block text-sm">Slug (valfritt)</label>
           <input
             name="slug"
             placeholder={topic.slug}
@@ -146,7 +76,7 @@ export default async function EditTopicPage({
         </div>
 
         <div>
-          <label className="block text-sm mb-1">Kategori</label>
+          <label className="mb-1 block text-sm">Kategori</label>
           <select
             name="category"
             defaultValue={topic.category}
@@ -161,7 +91,7 @@ export default async function EditTopicPage({
         </div>
 
         <div>
-          <label className="block text-sm mb-1">Utdrag</label>
+          <label className="mb-1 block text-sm">Utdrag</label>
           <input
             name="excerpt"
             defaultValue={topic.excerpt ?? ""}
@@ -170,7 +100,7 @@ export default async function EditTopicPage({
         </div>
 
         <div>
-          <label className="block text-sm mb-1">Författare att visa</label>
+          <label className="mb-1 block text-sm">Författare att visa</label>
           <input
             name="author_display"
             defaultValue={topic.author_display ?? ""}
@@ -179,12 +109,12 @@ export default async function EditTopicPage({
         </div>
 
         <div>
-          <label className="block text-sm mb-1">Innehåll (Markdown)</label>
+          <label className="mb-1 block text-sm">Innehåll (Markdown)</label>
           <textarea
             name="body_md"
             defaultValue={topic.body_md ?? ""}
             required
-            className="w-full rounded-lg border px-3 py-2 h-56"
+            className="h-56 w-full rounded-lg border px-3 py-2"
           />
         </div>
 
@@ -200,38 +130,33 @@ export default async function EditTopicPage({
 
         <div className="flex items-center gap-3">
           <button
-            className="rounded-lg bg-slate-900 text-white px-4 py-2 text-sm hover:bg-slate-800 cursor-pointer"
+            className="cursor-pointer rounded-lg bg-slate-900 px-4 py-2 text-sm text-white hover:bg-slate-800"
             type="submit"
           >
             Spara ändringar
           </button>
           <Link
             href={`/post/${slug}`}
-            className="rounded-lg border px-4 py-2 text-sm hover:bg-slate-50 cursor-pointer"
+            className="cursor-pointer rounded-lg border px-4 py-2 text-sm hover:bg-slate-50"
           >
             Avbryt
           </Link>
         </div>
       </form>
 
-      {/* ===== Images section (separate forms only) ===== */}
-      <section className="mt-10 space-y-4">
+      {/* ===== Images section ===== */}
+      {/*       <section className="mt-10 space-y-4">
         <h2 className="text-lg font-medium">Bilder</h2>
 
-        {/* Upload form (NOT inside another form) */}
-        <form
-          action={uploadImageAction}
-          className="space-y-3"
-          //encType="multipart/form-data"
-        >
+        <form action={uploadImageAction} className="space-y-3">
           <input type="hidden" name="topic_id" value={topic.id} />
           <input type="hidden" name="slug" value={topic.slug} />
           <div>
-            <label className="block text-sm mb-1">Välj bild</label>
+            <label className="mb-1 block text-sm">Välj bild</label>
             <input type="file" name="file" accept="image/*" required />
           </div>
           <div>
-            <label className="block text-sm mb-1">Alt-text</label>
+            <label className="mb-1 block text-sm">Alt-text</label>
             <input name="alt" className="w-full rounded-lg border px-3 py-2" />
           </div>
           <button
@@ -242,9 +167,8 @@ export default async function EditTopicPage({
           </button>
         </form>
 
-        {/* List current images */}
         <TopicMediaList topicId={topic.id} />
-      </section>
+      </section> */}
     </section>
   );
 }

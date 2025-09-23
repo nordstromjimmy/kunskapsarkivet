@@ -1,9 +1,9 @@
-// src/app/lib/supabase/route.ts
+// src/app/lib/supabase/actions.ts
 import { cookies } from "next/headers";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 
-export async function createClientRoute() {
-  const cookieStore = await cookies(); // Route Handlers have mutable cookies
+export async function supabaseServer() {
+  const cookieStore = await cookies();
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -14,12 +14,13 @@ export async function createClientRoute() {
           return cookieStore.get(name)?.value;
         },
         set(name: string, value: string, options: CookieOptions) {
-          // use the object overload to satisfy Next’s types
+          // Use object overload to satisfy Next's types
           cookieStore.set({ name, value, ...options });
         },
         remove(name: string, options: CookieOptions) {
-          // expire the cookie while preserving attributes (domain/path)
+          // Respect incoming options and expire the cookie
           cookieStore.set({ name, value: "", maxAge: 0, ...options });
+          // Alternatively: cookieStore.delete(name) — but using options avoids “unused var”
         },
       },
     }

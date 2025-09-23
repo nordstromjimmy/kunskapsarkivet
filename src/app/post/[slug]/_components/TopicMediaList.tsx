@@ -1,9 +1,10 @@
-import { createClientRSC } from "@/lib/supabase/rsc";
+import { deleteImageAction } from "@/actions/delete-image.action";
+import { supabaseServer } from "@/server/db/supabase-server";
+
 import Image from "next/image";
-import { deleteImageAction } from "../post/[slug]/delete-image.action";
 
 export async function TopicMediaList({ topicId }: { topicId: string }) {
-  const supabase = await createClientRSC();
+  const supabase = await supabaseServer();
 
   const { data: media } = await supabase
     .from("topic_media")
