@@ -46,7 +46,7 @@ export function Navbar({ user }: { user: User | null }) {
             {user ? (
               <>
                 <Link href="/profile" className="hover:text-slate-900">
-                  Profil
+                  Min sida
                 </Link>
                 {/* NEW: Nytt ämne */}
                 <Link

@@ -1,11 +1,16 @@
-// app/post/[slug]/edit/page.tsx
+import Image from "next/image";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { supabaseServer } from "@/server/db/supabase-server";
 import { categories } from "@/lib/schema/post";
 import { updateTopicFromFormAction } from "@/actions/topics";
-import { uploadImageAction } from "@/actions/upload-image.action"; // keep your path if different
-import { TopicMediaList } from "../_components/TopicMediaList";
+import {
+  deleteMediaAction,
+  updateMediaAltAction,
+  uploadTopicImageAction,
+} from "@/actions/media";
+import AutoUpload from "@/components/domain/AutoUpload";
+import TopicMediaList from "@/components/domain/TopicMediaList";
 
 export const dynamic = "force-dynamic";
 
@@ -30,14 +35,35 @@ export default async function EditTopicPage({
     .select("*")
     .eq("slug", slug)
     .maybeSingle();
-
   if (error) throw error;
   if (!topic) return notFound();
 
-  // Owner gate (belt + suspenders with RLS)
+  // Owner gate
   if (!user || topic.author_id !== user.id) {
     redirect(`/post/${slug}`);
   }
+
+  // Existing media (owner can see private via signed URLs)
+  const { data: media } = await sb
+    .from("topic_media")
+    .select("id, bucket, path, alt, width, height, created_at")
+    .eq("topic_id", topic.id)
+    .order("created_at", { ascending: true });
+
+  const mediaWithUrls =
+    (await Promise.all(
+      (media ?? []).map(async (m) => {
+        if (m.bucket === "topic-media-public") {
+          const { data } = sb.storage.from(m.bucket).getPublicUrl(m.path);
+          return { ...m, url: data.publicUrl as string };
+        }
+        // private
+        const { data } = await sb.storage
+          .from(m.bucket)
+          .createSignedUrl(m.path, 60);
+        return { ...m, url: data?.signedUrl ?? "" };
+      })
+    )) ?? [];
 
   return (
     <section className="mx-auto max-w-2xl">
@@ -144,31 +170,26 @@ export default async function EditTopicPage({
         </div>
       </form>
 
-      {/* ===== Images section ===== */}
-      {/*       <section className="mt-10 space-y-4">
+      {/* ===== Images ===== */}
+      <section className="mt-10 space-y-4">
         <h2 className="text-lg font-medium">Bilder</h2>
 
-        <form action={uploadImageAction} className="space-y-3">
-          <input type="hidden" name="topic_id" value={topic.id} />
-          <input type="hidden" name="slug" value={topic.slug} />
-          <div>
-            <label className="mb-1 block text-sm">Välj bild</label>
-            <input type="file" name="file" accept="image/*" required />
-          </div>
-          <div>
-            <label className="mb-1 block text-sm">Alt-text</label>
-            <input name="alt" className="w-full rounded-lg border px-3 py-2" />
-          </div>
-          <button
-            className="rounded-md border px-3 py-1.5 text-sm"
-            type="submit"
-          >
-            Ladda upp
-          </button>
-        </form>
+        {/* Auto-upload (submits immediately on file choose) */}
+        <AutoUpload
+          mode="topic"
+          topicId={topic.id}
+          slug={topic.slug}
+          action={uploadTopicImageAction}
+        />
 
-        <TopicMediaList topicId={topic.id} />
-      </section> */}
+        <TopicMediaList
+          mode="topic"
+          topicId={topic.id}
+          ownerSigned
+          editable
+          slug={topic.slug}
+        />
+      </section>
     </section>
   );
 }

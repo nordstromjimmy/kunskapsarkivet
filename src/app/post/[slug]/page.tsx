@@ -4,6 +4,8 @@ import { supabaseServer } from "@/server/db/supabase-server";
 import { DeleteButton } from "@/components/domain/DeleteButton";
 import { FavoriteButton } from "@/components/domain/FavoriteButton";
 import { deleteTopicBySlugAction } from "@/actions/topics";
+import Image from "next/image";
+import TopicMediaList from "@/components/domain/TopicMediaList";
 
 export const dynamic = "force-dynamic";
 
@@ -111,23 +113,7 @@ export default async function TopicPage({ params }: PageProps) {
 
       <div className="whitespace-pre-wrap">{topic.body_md}</div>
 
-      {/* Images */}
-      {mediaWithUrls
-        .filter((x) => x.url)
-        .map((m) => (
-          <figure key={m.id} className="my-6">
-            <img
-              src={m.url}
-              alt={m.alt || ""}
-              className="h-auto max-w-full rounded-lg border"
-            />
-            {m.alt && (
-              <figcaption className="mt-2 text-xs text-slate-500">
-                {m.alt}
-              </figcaption>
-            )}
-          </figure>
-        ))}
+      <TopicMediaList mode="topic" topicId={topic.id} ownerSigned={isOwner} />
     </article>
   );
 }
