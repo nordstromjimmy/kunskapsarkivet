@@ -121,6 +121,7 @@ export async function updateMediaAltAction(formData: FormData): Promise<void> {
   const alt = String(formData.get("alt") ?? "")
     .slice(0, 200)
     .trim();
+  const slug = (formData.get("slug") as string) || "";
   if (!id) return;
   const sb = await supabaseServer();
   const { error } = await sb
@@ -128,6 +129,13 @@ export async function updateMediaAltAction(formData: FormData): Promise<void> {
     .update({ alt: alt || null })
     .eq("id", id);
   if (error) throw new Error(error.message);
+
+  if (slug) {
+    revalidatePath(`/post/${slug}`);
+    revalidatePath(`/post/${slug}/edit`);
+  } else {
+    revalidatePath("/new");
+  }
 }
 
 export async function deleteMediaAction(formData: FormData): Promise<void> {

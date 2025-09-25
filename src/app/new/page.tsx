@@ -167,7 +167,7 @@ export default async function NewTopicPage({
 
       {/* --------- Images: auto-upload + list with alt editor --------- */}
       <section className="mt-10 space-y-4">
-        <h2 className="text-lg font-medium">Bilder</h2>
+        <h2 className="text-lg font-medium">Ladda upp bilder</h2>
         <AutoUpload
           mode="draft"
           draftKey={draftKey}

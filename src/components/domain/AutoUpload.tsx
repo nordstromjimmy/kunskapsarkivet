@@ -1,5 +1,4 @@
 "use client";
-
 import { useRef, useTransition, useState } from "react";
 
 /** What <form action={...}> accepts */
@@ -23,14 +22,16 @@ type TopicProps = {
 type Props = DraftProps | TopicProps;
 
 export default function AutoUpload(props: Props) {
-  const ref = useRef<HTMLFormElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
   const [pending, start] = useTransition();
   const [alt, setAlt] = useState("");
+  const [fileName, setFileName] = useState<string>("");
 
   const disabled = props.disabled ?? false;
 
   return (
-    <form ref={ref} action={props.action} className="space-y-3">
+    <form ref={formRef} action={props.action} className="space-y-3">
       {props.mode === "draft" ? (
         <input type="hidden" name="draft_key" value={props.draftKey} />
       ) : (
@@ -41,39 +42,47 @@ export default function AutoUpload(props: Props) {
       )}
 
       <div className="grid gap-2 sm:grid-cols-[1fr,2fr]">
-        {/*         <div>
-          <label className="mb-1 block text-sm">Alt-text (valfritt)</label>
-          <input
-            name="alt"
-            value={alt}
-            onChange={(e) => setAlt(e.target.value)}
-            placeholder="Beskriv bilden"
-            className="w-full rounded-lg border px-3 py-2 text-sm"
-            disabled={disabled || pending}
-          />
-        </div> */}
-
+        {/* Custom file picker */}
         <div>
-          <label className="mb-1 block text-sm">Välj bild</label>
+          {/* Hidden native input (kept inside the form so the file posts) */}
           <input
+            ref={fileRef}
             type="file"
             name="file"
             accept="image/*"
-            disabled={disabled || pending}
+            className="sr-only"
+            aria-hidden="true"
+            tabIndex={-1}
             onChange={(e) => {
               const f = e.currentTarget.files?.[0];
               if (!f) return;
+              // client-side guard
               if (f.size > 12 * 1024 * 1024) {
                 alert("Filen är för stor (max 12MB).");
                 e.currentTarget.value = "";
+                setFileName("");
                 return;
               }
-              start(() => ref.current?.requestSubmit());
+              setFileName(f.name);
+              // auto-submit immediately
+              start(() => formRef.current?.requestSubmit());
             }}
           />
-          {pending && (
-            <p className="mt-1 text-xs text-slate-500">Laddar upp…</p>
-          )}
+
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              disabled={disabled || pending}
+              className="cursor-pointer rounded-lg border px-3 py-1.5 text-sm hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Välj fil
+            </button>
+
+            <span className="text-xs text-slate-600 truncate max-w-[220px]">
+              {pending ? "Laddar upp…" : fileName || "Ingen fil vald"}
+            </span>
+          </div>
         </div>
       </div>
     </form>

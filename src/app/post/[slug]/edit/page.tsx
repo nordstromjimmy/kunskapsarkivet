@@ -172,7 +172,7 @@ export default async function EditTopicPage({
 
       {/* ===== Images ===== */}
       <section className="mt-10 space-y-4">
-        <h2 className="text-lg font-medium">Bilder</h2>
+        <h2 className="text-lg font-medium">Ladda upp bilder</h2>
 
         {/* Auto-upload (submits immediately on file choose) */}
         <AutoUpload
