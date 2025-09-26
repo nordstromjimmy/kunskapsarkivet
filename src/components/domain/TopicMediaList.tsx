@@ -5,7 +5,7 @@ import {
   type MediaItem,
 } from "@/server/repos/media";
 import { updateMediaAltAction, deleteMediaAction } from "@/actions/media";
-import PendingButton from "../ui/PendingButton";
+import MediaEditorRow from "./MediaEditorRow";
 
 type DraftProps = {
   mode: "draft";
@@ -56,54 +56,16 @@ export default async function TopicMediaList(props: Props) {
             </div>
 
             {props.editable ? (
-              <div className="mt-3">
-                <form
-                  action={updateMediaAltAction}
-                  className="min-w-0 space-y-2"
-                >
-                  <input type="hidden" name="media_id" value={m.id} />
-                  {"slug" in props ? (
-                    <input type="hidden" name="slug" value={props.slug ?? ""} />
-                  ) : null}
-
-                  <label
-                    htmlFor={`alt-text-${m.id}`}
-                    className="block text-sm text-slate-600"
-                  >
-                    Bildtext (valfritt)
-                  </label>
-
-                  <textarea
-                    id={`alt-text-${m.id}`}
-                    name="alt"
-                    defaultValue={m.alt ?? ""}
-                    rows={3}
-                    placeholder="Lägg till bildtext"
-                    className="w-full resize-y rounded-lg border px-3 py-2 text-sm leading-6
-                   focus:outline-none focus:ring-2 focus:ring-slate-400/50"
-                  />
-
-                  <div className="mt-2 flex justify-between gap-2">
-                    <PendingButton
-                      pendingText="Sparar…"
-                      className="bg-slate-900 text-white hover:bg-slate-800"
-                    >
-                      Spara text
-                    </PendingButton>
-
-                    <PendingButton
-                      pendingText="Raderar…"
-                      formAction={deleteMediaAction}
-                      className="border border-rose-300 text-rose-700 hover:bg-rose-50"
-                    >
-                      Radera bild
-                    </PendingButton>
-                  </div>
-                </form>
-              </div>
+              <MediaEditorRow
+                mediaId={m.id}
+                defaultAlt={m.alt ?? ""}
+                slug={props.mode === "topic" ? (props.slug ?? "") : undefined}
+                onSave={updateMediaAltAction}
+                onDelete={deleteMediaAction}
+              />
             ) : (
               m.alt && (
-                <figcaption className="mt-2 text-xs text-slate-500">
+                <figcaption className="mt-2 text-md text-slate-500">
                   {m.alt}
                 </figcaption>
               )

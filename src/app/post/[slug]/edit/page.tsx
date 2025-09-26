@@ -1,16 +1,11 @@
-import Image from "next/image";
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { supabaseServer } from "@/server/db/supabase-server";
 import { categories } from "@/lib/schema/post";
 import { updateTopicFromFormAction } from "@/actions/topics";
-import {
-  deleteMediaAction,
-  updateMediaAltAction,
-  uploadTopicImageAction,
-} from "@/actions/media";
+import { uploadTopicImageAction } from "@/actions/media";
 import AutoUpload from "@/components/domain/AutoUpload";
 import TopicMediaList from "@/components/domain/TopicMediaList";
+import FormSubmitButton from "@/components/ui/FormSubmitButton";
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +24,8 @@ export default async function EditTopicPage({
     data: { user },
   } = await sb.auth.getUser();
 
-  // Fetch topic (RLS lets owner see drafts)
+  const disabled = !user;
+
   const { data: topic, error } = await sb
     .from("topics")
     .select("*")
@@ -38,12 +34,10 @@ export default async function EditTopicPage({
   if (error) throw error;
   if (!topic) return notFound();
 
-  // Owner gate
   if (!user || topic.author_id !== user.id) {
     redirect(`/post/${slug}`);
   }
 
-  // Existing media (owner can see private via signed URLs)
   const { data: media } = await sb
     .from("topic_media")
     .select("id, bucket, path, alt, width, height, created_at")
@@ -75,8 +69,11 @@ export default async function EditTopicPage({
         </p>
       )}
 
-      {/* ===== Edit form ===== */}
-      <form action={updateTopicFromFormAction} className="mt-6 space-y-4">
+      <form
+        id="create-topic-form"
+        action={updateTopicFromFormAction}
+        className="mt-6 space-y-4"
+      >
         <input type="hidden" name="original_slug" value={slug} />
 
         <div>
@@ -143,38 +140,11 @@ export default async function EditTopicPage({
             className="h-56 w-full rounded-lg border px-3 py-2"
           />
         </div>
-
-        <label className="inline-flex items-center gap-2">
-          <input
-            type="checkbox"
-            name="is_published"
-            defaultChecked={!!topic.is_published}
-            className="h-4 w-4"
-          />
-          <span>Publicera</span>
-        </label>
-
-        <div className="flex items-center gap-3">
-          <button
-            className="cursor-pointer rounded-lg bg-slate-900 px-4 py-2 text-sm text-white hover:bg-slate-800"
-            type="submit"
-          >
-            Spara ändringar
-          </button>
-          <Link
-            href={`/post/${slug}`}
-            className="cursor-pointer rounded-lg border px-4 py-2 text-sm hover:bg-slate-50"
-          >
-            Avbryt
-          </Link>
-        </div>
       </form>
 
-      {/* ===== Images ===== */}
       <section className="mt-10 space-y-4">
         <h2 className="text-lg font-medium">Ladda upp bilder</h2>
 
-        {/* Auto-upload (submits immediately on file choose) */}
         <AutoUpload
           mode="topic"
           topicId={topic.id}
@@ -190,6 +160,29 @@ export default async function EditTopicPage({
           slug={topic.slug}
         />
       </section>
+
+      <div className="flex flex-col items-center gap-2 border-t-1 mt-12 py-8">
+        <input
+          id="pub"
+          type="checkbox"
+          name="is_published"
+          className="h-4 w-4"
+          defaultChecked
+          form="create-topic-form"
+          disabled={disabled}
+        />
+        <label htmlFor="pub" className="text-sm">
+          Publicera
+        </label>
+        <FormSubmitButton
+          formId="create-topic-form"
+          pendingText="Sparar…"
+          disabled={disabled}
+          className="cursor-pointer rounded-lg bg-slate-900 text-white hover:bg-slate-800"
+        >
+          Spara
+        </FormSubmitButton>
+      </div>
     </section>
   );
 }

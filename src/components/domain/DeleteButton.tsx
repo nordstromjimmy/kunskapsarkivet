@@ -11,7 +11,7 @@ export function DeleteButton() {
       onClick={onClick}
       className="rounded-md bg-rose-600 px-3 py-1.5 text-sm text-white hover:bg-rose-800 cursor-pointer"
     >
-      Radera
+      Radera ämne
     </button>
   );
 }

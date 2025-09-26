@@ -97,7 +97,7 @@ export default async function TopicPage({ params }: PageProps) {
               href={`/post/${slug}/edit`}
               className="rounded-md border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-50"
             >
-              Redigera
+              Redigera ämne
             </Link>
 
             {/* Delete with server action + client confirm button */}

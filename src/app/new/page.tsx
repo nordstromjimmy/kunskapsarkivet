@@ -1,18 +1,13 @@
 import crypto from "node:crypto";
 import { redirect } from "next/navigation";
-import Image from "next/image";
 import { supabaseServer } from "@/server/db/supabase-server";
 import { categories } from "@/lib/schema/post";
 import { createTopicFromFormAction } from "@/actions/topics";
-import {
-  deleteMediaAction,
-  updateMediaAltAction,
-  uploadTopicImageAction,
-} from "@/actions/media";
+import { uploadTopicImageAction } from "@/actions/media";
 import TopicMediaList from "@/components/domain/TopicMediaList";
 import AutoUpload from "@/components/domain/AutoUpload";
+import FormSubmitButton from "@/components/ui/FormSubmitButton";
 
-// ---- helper to fetch staged media + build URLs (server component)
 async function listDraftMediaWithUrls(draftKey: string) {
   const sb = await supabaseServer();
   const { data } = await sb
@@ -23,7 +18,6 @@ async function listDraftMediaWithUrls(draftKey: string) {
 
   const rows = data ?? [];
   return rows.map((m) => {
-    // assuming public bucket during draft; if private, switch to signed URLs
     const { data: pub } = sb.storage.from(m.bucket).getPublicUrl(m.path);
     return { ...m, url: pub.publicUrl as string };
   });
@@ -51,9 +45,7 @@ export default async function NewTopicPage({
   } = await supabase.auth.getUser();
   const disabled = !user;
 
-  // ⬇️ use the stable `draft` param everywhere
   const draftKey = draft;
-  const staged = await listDraftMediaWithUrls(draftKey);
 
   return (
     <section className="max-w-2xl">
@@ -83,8 +75,11 @@ export default async function NewTopicPage({
         </div>
       )}
 
-      {/* --------- Create topic form (claims staged media via draft_key) --------- */}
-      <form action={createTopicFromFormAction} className="mt-6 space-y-4">
+      <form
+        id="create-topic-form"
+        action={createTopicFromFormAction}
+        className="mt-6 space-y-4"
+      >
         <input type="hidden" name="draft_key" value={draftKey} />
 
         <div>
@@ -142,30 +137,8 @@ export default async function NewTopicPage({
             className="h-56 w-full rounded-lg border px-3 py-2"
           />
         </div>
-
-        <div className="flex items-center gap-2">
-          <input
-            id="pub"
-            type="checkbox"
-            name="is_published"
-            className="h-4 w-4"
-            defaultChecked
-            disabled={disabled}
-          />
-          <label htmlFor="pub" className="text-sm">
-            Publicera direkt
-          </label>
-        </div>
-
-        <button
-          disabled={disabled}
-          className="cursor-pointer rounded-lg bg-slate-900 px-4 py-2 text-sm text-white hover:bg-slate-800 disabled:opacity-50"
-        >
-          Spara
-        </button>
       </form>
 
-      {/* --------- Images: auto-upload + list with alt editor --------- */}
       <section className="mt-10 space-y-4">
         <h2 className="text-lg font-medium">Ladda upp bilder</h2>
         <AutoUpload
@@ -176,6 +149,29 @@ export default async function NewTopicPage({
         />
         <TopicMediaList mode="draft" draftKey={draftKey} editable />
       </section>
+
+      <div className="flex flex-col items-center gap-2 border-t-1 mt-12 py-8">
+        <input
+          id="pub"
+          type="checkbox"
+          name="is_published"
+          className="h-4 w-4"
+          defaultChecked
+          form="create-topic-form"
+          disabled={disabled}
+        />
+        <label htmlFor="pub" className="text-sm">
+          Publicera direkt
+        </label>
+        <FormSubmitButton
+          formId="create-topic-form"
+          pendingText="Sparar…"
+          disabled={disabled}
+          className="cursor-pointer rounded-lg bg-slate-900 text-white hover:bg-slate-800"
+        >
+          Spara
+        </FormSubmitButton>
+      </div>
     </section>
   );
 }
