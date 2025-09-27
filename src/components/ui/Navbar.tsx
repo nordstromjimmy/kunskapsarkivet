@@ -167,17 +167,24 @@ function CategoryScroller() {
   const active = decodeURIComponent(searchParams.get("k") ?? "");
 
   return (
-    <>
-      <CategoryLink label="Alla" href="/" active={active === ""} />
-      {categories.map((c) => (
-        <CategoryLink
-          key={c}
-          label={c}
-          href={`/?k=${encodeURIComponent(c)}`}
-          active={active === c}
-        />
-      ))}
-    </>
+    <section className="w-full">
+      <h2 className="mb-2 text-center text-lg font-medium">Kategorier</h2>
+
+      <nav
+        aria-label="Kategorier"
+        className="flex flex-wrap justify-center gap-2 sm:gap-3"
+      >
+        <CategoryLink label="Alla" href="/" active={active === ""} />
+        {categories.map((c) => (
+          <CategoryLink
+            key={c}
+            label={c}
+            href={`/?k=${encodeURIComponent(c)}`}
+            active={active === c}
+          />
+        ))}
+      </nav>
+    </section>
   );
 }
 

@@ -1,7 +1,7 @@
 import "server-only";
 import { supabaseServer } from "@/server/db/supabase-server";
 import type { Post } from "@/lib/schema/post";
-import { slugify } from "@/lib/schema/post"; // optional helper if you kept it
+import { slugify } from "@/lib/schema/post";
 
 // DB row shape (subset) from public.topics
 type TopicRow = {
