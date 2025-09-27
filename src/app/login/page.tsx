@@ -101,11 +101,17 @@ export default async function LoginPage({
 
           {/* Optional row under the form */}
           <div className="mt-4 flex items-center justify-between text-xs text-slate-600">
-            <span />
-            {/* If you add a reset page later, point this link there */}
-            <a className="hover:underline" href="/reset">
-              Glömt lösenord?
-            </a>
+            <div className="mt-4 text-center text-xs text-slate-600">
+              Har du inget konto?{" "}
+              <a className="hover:underline" href="/register">
+                Skapa konto
+              </a>
+            </div>
+            <div className="mt-4 text-center text-xs text-slate-600">
+              <a className="hover:underline" href="/reset">
+                Glömt lösenord?
+              </a>
+            </div>
           </div>
         </div>
       </div>

@@ -1,6 +1,0 @@
-Auth: next-auth nodemailer
-DB: @prisma/client prisma
-
-
-Alternative:
-Using Supabase for both Auth and DB
