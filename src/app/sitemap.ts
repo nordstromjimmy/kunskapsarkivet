@@ -32,7 +32,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   const topicRoutes: MetadataRoute.Sitemap = (topics ?? []).map((t) => ({
-    url: `${base}/topic/${t.slug}`,
+    url: `${base}/post/${t.slug}`,
     lastModified: t.updated_at ?? undefined,
     changeFrequency: "monthly",
     priority: 0.7,

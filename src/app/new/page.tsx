@@ -150,19 +150,21 @@ export default async function NewTopicPage({
         <TopicMediaList mode="draft" draftKey={draftKey} editable />
       </section>
 
-      <div className="flex flex-col items-center gap-2 border-t-1 mt-12 py-8">
-        <input
-          id="pub"
-          type="checkbox"
-          name="is_published"
-          className="h-4 w-4"
-          defaultChecked
-          form="create-topic-form"
-          disabled={disabled}
-        />
-        <label htmlFor="pub" className="text-sm">
-          Publicera direkt
-        </label>
+      <div className="flex flex-col items-center gap-2 border-t mt-12 py-12">
+        <div className="flex flex-row items-center gap-2 py-2">
+          <input
+            id="pub"
+            type="checkbox"
+            name="is_published"
+            className="h-4 w-4"
+            defaultChecked
+            form="create-topic-form"
+            disabled={disabled}
+          />
+          <label htmlFor="pub" className="text-sm">
+            Publicera direkt
+          </label>
+        </div>
         <FormSubmitButton
           formId="create-topic-form"
           pendingText="Sparar…"
