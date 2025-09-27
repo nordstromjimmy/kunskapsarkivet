@@ -7,6 +7,9 @@ const REGISTRATION_OPEN = false;
 
 async function register(formData: FormData) {
   "use server";
+  if (!REGISTRATION_OPEN) {
+    return undefined;
+  }
   const email = String(formData.get("email") || "");
   const password = String(formData.get("password") || "");
 
@@ -41,10 +44,7 @@ export default async function RegisterPage({
           sidan. Kom tillbaka snart!
         </p>
       )}
-      <form
-        action={REGISTRATION_OPEN ? register : undefined}
-        className="mt-6 space-y-4"
-      >
+      <form action={register} className="mt-6 space-y-4">
         <div>
           <label className="block text-sm mb-1">Email</label>
           <input
