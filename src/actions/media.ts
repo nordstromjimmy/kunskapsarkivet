@@ -8,10 +8,6 @@ const MAX_W = 1600;
 const MAX_H = 1600;
 const OUTPUT_QUALITY = 82; // WebP quality
 
-function bad(msg: string) {
-  return { ok: false as const, error: msg };
-}
-
 export async function uploadTopicImageAction(
   formData: FormData
 ): Promise<void> {

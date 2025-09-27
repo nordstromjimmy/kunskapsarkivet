@@ -38,27 +38,6 @@ export default async function EditTopicPage({
     redirect(`/post/${slug}`);
   }
 
-  const { data: media } = await sb
-    .from("topic_media")
-    .select("id, bucket, path, alt, width, height, created_at")
-    .eq("topic_id", topic.id)
-    .order("created_at", { ascending: true });
-
-  const mediaWithUrls =
-    (await Promise.all(
-      (media ?? []).map(async (m) => {
-        if (m.bucket === "topic-media-public") {
-          const { data } = sb.storage.from(m.bucket).getPublicUrl(m.path);
-          return { ...m, url: data.publicUrl as string };
-        }
-        // private
-        const { data } = await sb.storage
-          .from(m.bucket)
-          .createSignedUrl(m.path, 60);
-        return { ...m, url: data?.signedUrl ?? "" };
-      })
-    )) ?? [];
-
   return (
     <section className="mx-auto max-w-2xl">
       <h1 className="text-xl font-semibold tracking-tight">Redigera ämne</h1>

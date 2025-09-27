@@ -4,7 +4,6 @@ import { supabaseServer } from "@/server/db/supabase-server";
 import { DeleteButton } from "@/components/domain/DeleteButton";
 import { FavoriteButton } from "@/components/domain/FavoriteButton";
 import { deleteTopicBySlugAction } from "@/actions/topics";
-import Image from "next/image";
 import TopicMediaList from "@/components/domain/TopicMediaList";
 
 export const dynamic = "force-dynamic";
@@ -17,12 +16,10 @@ export default async function TopicPage({ params }: PageProps) {
   const { slug } = await params;
   const sb = await supabaseServer();
 
-  // Current user
   const {
     data: { user },
   } = await sb.auth.getUser();
 
-  // Topic (RLS decides visibility: published or owned)
   const { data: topic, error } = await sb
     .from("topics")
     .select(
@@ -36,31 +33,6 @@ export default async function TopicPage({ params }: PageProps) {
 
   const isOwner = !!user && topic.author_id === user.id;
 
-  // Media (grab an id so keys are stable)
-  const { data: media } = await sb
-    .from("topic_media")
-    .select("id, bucket, path, alt, created_at")
-    .eq("topic_id", topic.id)
-    .order("created_at", { ascending: true });
-
-  // Resolve URLs: public -> publicUrl, private -> signed URL (owner only)
-  const mediaWithUrls =
-    (await Promise.all(
-      (media ?? []).map(async (m) => {
-        if (m.bucket === "topic-media-public") {
-          const { data } = sb.storage.from(m.bucket).getPublicUrl(m.path);
-          return { ...m, url: data.publicUrl };
-        }
-        // Private buckets: only the owner should see signed URLs
-        if (!isOwner) return { ...m, url: "" };
-        const { data } = await sb.storage
-          .from(m.bucket)
-          .createSignedUrl(m.path, 60);
-        return { ...m, url: data?.signedUrl ?? "" };
-      })
-    )) ?? [];
-
-  // Initial favorite state (only if logged in)
   let initialFav = false;
   if (user) {
     const { data: fav } = await sb
@@ -83,14 +55,12 @@ export default async function TopicPage({ params }: PageProps) {
           {new Date(topic.created_at).toLocaleDateString("sv-SE")}
         </p>
 
-        {/* Favorite for any signed-in user */}
         {user && (
           <div className="mt-2">
             <FavoriteButton topicId={topic.id} initial={initialFav} />
           </div>
         )}
 
-        {/* Owner controls */}
         {isOwner && (
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <Link
@@ -100,7 +70,6 @@ export default async function TopicPage({ params }: PageProps) {
               Redigera ämne
             </Link>
 
-            {/* Delete with server action + client confirm button */}
             <form action={deleteTopicBySlugAction}>
               <input type="hidden" name="slug" value={slug} />
               <DeleteButton />

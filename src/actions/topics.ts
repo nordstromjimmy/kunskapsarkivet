@@ -92,28 +92,6 @@ export async function createTopicFromFormAction(formData: FormData) {
       console.error("claim:error", claimErr);
     }
   }
-
-  /*   if (insertErr) {
-    if (insertErr.code === "23505") {
-      slug = `${baseSlug}-${Date.now()}`;
-      const { error: retryErr } = await supabase.from("topics").insert({
-        slug,
-        title,
-        excerpt,
-        category,
-        body_md,
-        author_display: author_display || null,
-        is_published,
-        author_id: user.id,
-      });
-      if (retryErr) {
-        redirect(`/new?error=${encodeURIComponent(retryErr.message)}`);
-      }
-    } else {
-      redirect(`/new?error=${encodeURIComponent(insertErr.message)}`);
-    }
-  } */
-
   redirect(`/post/${slug}`); // adjust to /topic/ if you change routing
 }
 
@@ -244,62 +222,4 @@ export async function deleteTopicBySlugAction(formData: FormData) {
   }
 
   redirect("/profile"); // or '/'
-}
-
-async function deleteTopicAction(formData: FormData) {
-  "use server";
-  const slug = String(formData.get("slug") || "");
-  if (!slug) return;
-
-  const sb = await supabaseServer();
-  const {
-    data: { user },
-  } = await sb.auth.getUser();
-  if (!user) redirect(`/login?next=/post/${slug}`);
-
-  // 1) Find topic (owner enforced by RLS + double check)
-  const { data: topic } = await sb
-    .from("topics")
-    .select("id, author_id")
-    .eq("slug", slug)
-    .maybeSingle();
-  if (!topic || topic.author_id !== user.id) redirect(`/post/${slug}`);
-
-  // 2) List media for this topic
-  const { data: media, error: mediaErr } = await sb
-    .from("topic_media")
-    .select("bucket, path")
-    .eq("topic_id", topic.id);
-  if (mediaErr) throw mediaErr;
-
-  // 3) Remove from storage (group by bucket to minimize calls)
-  const byBucket = new Map<string, string[]>();
-  for (const m of media ?? []) {
-    if (!byBucket.has(m.bucket)) byBucket.set(m.bucket, []);
-    byBucket.get(m.bucket)!.push(m.path);
-  }
-  for (const [bucket, paths] of byBucket) {
-    if (paths.length) {
-      const { error } = await sb.storage.from(bucket).remove(paths);
-      if (error) {
-        console.error("storage.remove (topic) error", { bucket, error });
-        // you could abort here if you prefer to keep DB rows until storage is clean
-      }
-    }
-  }
-
-  const { error: delMediaErr } = await sb
-    .from("topic_media")
-    .delete()
-    .eq("topic_id", topic.id);
-  if (delMediaErr) console.error("topic_media bulk delete error", delMediaErr);
-
-  // 5) Delete the topic
-  const { error: delTopicErr } = await sb
-    .from("topics")
-    .delete()
-    .eq("id", topic.id);
-  if (delTopicErr) throw delTopicErr;
-
-  redirect("/profile");
 }

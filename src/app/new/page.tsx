@@ -8,21 +8,6 @@ import TopicMediaList from "@/components/domain/TopicMediaList";
 import AutoUpload from "@/components/domain/AutoUpload";
 import FormSubmitButton from "@/components/ui/FormSubmitButton";
 
-async function listDraftMediaWithUrls(draftKey: string) {
-  const sb = await supabaseServer();
-  const { data } = await sb
-    .from("topic_media")
-    .select("id, bucket, path, alt, width, height, created_at")
-    .eq("draft_key", draftKey)
-    .order("created_at", { ascending: true });
-
-  const rows = data ?? [];
-  return rows.map((m) => {
-    const { data: pub } = sb.storage.from(m.bucket).getPublicUrl(m.path);
-    return { ...m, url: pub.publicUrl as string };
-  });
-}
-
 export const dynamic = "force-dynamic";
 
 export default async function NewTopicPage({

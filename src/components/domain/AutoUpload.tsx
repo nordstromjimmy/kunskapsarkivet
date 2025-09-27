@@ -1,7 +1,6 @@
 "use client";
 import { useRef, useTransition, useState } from "react";
 
-/** What <form action={...}> accepts */
 export type FormAction = (formData: FormData) => void | Promise<void>;
 
 type DraftProps = {
@@ -25,7 +24,6 @@ export default function AutoUpload(props: Props) {
   const formRef = useRef<HTMLFormElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const [pending, start] = useTransition();
-  const [alt, setAlt] = useState("");
   const [fileName, setFileName] = useState<string>("");
 
   const disabled = props.disabled ?? false;
@@ -42,9 +40,7 @@ export default function AutoUpload(props: Props) {
       )}
 
       <div className="grid gap-2 sm:grid-cols-[1fr,2fr]">
-        {/* Custom file picker */}
         <div>
-          {/* Hidden native input (kept inside the form so the file posts) */}
           <input
             ref={fileRef}
             type="file"
