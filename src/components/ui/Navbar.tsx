@@ -1,14 +1,19 @@
 "use client";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { usePathname } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
-import { categories } from "../../lib/schema/post";
 import Image from "next/image";
 import type { User } from "@supabase/supabase-js";
+import CategoryScroller from "../domain/CategoryBar";
 
 export function Navbar({ user }: { user: User | null }) {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+  const hideCategories =
+    pathname === "/login" ||
+    pathname === "/register" ||
+    pathname === "/reset" ||
+    pathname.startsWith("/reset/");
 
   useEffect(() => {
     const onResize = () => {
@@ -25,7 +30,7 @@ export function Navbar({ user }: { user: User | null }) {
 
   return (
     <header className="sticky top-0 z-30 bg-white/90 backdrop-blur">
-      <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+      <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 border-b">
         <div className="flex h-14 items-center justify-between">
           {/* Brand */}
           <Link
@@ -150,68 +155,18 @@ export function Navbar({ user }: { user: User | null }) {
       </div>
 
       {/* Category scroller */}
-      <div className="border-t">
-        <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 overflow-x-auto">
-          <div className="flex gap-3 py-4">
-            <Suspense fallback={<div>Loading...</div>}>
-              <CategoryScroller />
-            </Suspense>
+      {!hideCategories && (
+        <div className="">
+          <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 overflow-x-auto">
+            <div className="flex gap-3 py-4">
+              <Suspense fallback={<div>Loading...</div>}>
+                <CategoryScroller />
+              </Suspense>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </header>
-  );
-}
-
-function CategoryScroller() {
-  const pathname = usePathname();
-  const base = pathname.startsWith("/posts") ? "/posts" : "/";
-  const searchParams = useSearchParams();
-  const active = decodeURIComponent(searchParams.get("k") ?? "");
-
-  return (
-    <section className="w-full">
-      <h2 className="mb-4 text-center text-xl font-semibold">Kategorier</h2>
-
-      <nav
-        aria-label="Kategorier"
-        className="flex flex-wrap justify-center gap-2 sm:gap-3"
-      >
-        <CategoryLink label="Alla" href={base} active={active === ""} />
-        {categories.map((c) => (
-          <CategoryLink
-            key={c}
-            label={c}
-            href={`${base}?k=${encodeURIComponent(c)}`}
-            active={active === c}
-          />
-        ))}
-      </nav>
-    </section>
-  );
-}
-
-function CategoryLink({
-  label,
-  href,
-  active,
-}: {
-  label: string;
-  href: string;
-  active?: boolean;
-}) {
-  return (
-    <Link
-      href={href}
-      className={[
-        "whitespace-nowrap rounded-full border px-3 py-1.5 text-sm",
-        active
-          ? "border-slate-900 bg-slate-900 text-white"
-          : "border-slate-2 00 hover:bg-slate-50",
-      ].join(" ")}
-    >
-      {label}
-    </Link>
   );
 }
 
