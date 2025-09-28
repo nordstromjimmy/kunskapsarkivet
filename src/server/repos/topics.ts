@@ -1,7 +1,11 @@
 import "server-only";
 import { supabaseServer } from "@/server/db/supabase-server";
-import type { Post } from "@/lib/schema/post";
-import { slugify } from "@/lib/schema/post";
+import { Post, slugify } from "@/lib/schema/post";
+import {
+  isCategory,
+  categories as ALL_CATEGORIES,
+  type Category,
+} from "@/lib/schema/post";
 
 // DB row shape (subset) from public.topics
 type TopicRow = {
@@ -79,6 +83,43 @@ export async function listTopicsByCategory(
   const { data, error } = await q;
   if (error) throw error;
   return (data as TopicRow[]).map(mapTopicRowToPost);
+}
+
+/** Narrow list by searchbar filter. */
+export async function listTopicsFiltered({
+  category,
+  q,
+}: {
+  category?: Category;
+  q?: string;
+}) {
+  const sb = await supabaseServer();
+  let query = sb
+    .from("topics")
+    .select("id, slug, title, excerpt, category, author_display, created_at")
+    .eq("is_published", true)
+    .order("created_at", { ascending: false });
+
+  if (category) query = query.eq("category", category);
+  if (q && q.trim()) query = query.ilike("title", `%${q.trim()}%`);
+
+  const { data, error } = await query;
+  if (error) throw error;
+
+  return (data ?? []).map((t) => {
+    const cat: Category = isCategory(t.category)
+      ? t.category
+      : ALL_CATEGORIES[0];
+    return {
+      id: t.id as string,
+      slug: t.slug as string,
+      title: t.title as string,
+      excerpt: (t.excerpt as string) ?? "",
+      category: cat, // ← union-safe
+      author: (t.author_display as string) ?? "Okänd",
+      date: t.created_at as string,
+    };
+  });
 }
 
 // ----------------- writes -----------------

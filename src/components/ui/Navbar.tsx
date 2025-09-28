@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { categories } from "../../lib/schema/post";
 import Image from "next/image";
@@ -163,6 +164,8 @@ export function Navbar({ user }: { user: User | null }) {
 }
 
 function CategoryScroller() {
+  const pathname = usePathname();
+  const base = pathname.startsWith("/posts") ? "/posts" : "/";
   const searchParams = useSearchParams();
   const active = decodeURIComponent(searchParams.get("k") ?? "");
 
@@ -174,12 +177,12 @@ function CategoryScroller() {
         aria-label="Kategorier"
         className="flex flex-wrap justify-center gap-2 sm:gap-3"
       >
-        <CategoryLink label="Alla" href="/" active={active === ""} />
+        <CategoryLink label="Alla" href={base} active={active === ""} />
         {categories.map((c) => (
           <CategoryLink
             key={c}
             label={c}
-            href={`/?k=${encodeURIComponent(c)}`}
+            href={`${base}?k=${encodeURIComponent(c)}`}
             active={active === c}
           />
         ))}
