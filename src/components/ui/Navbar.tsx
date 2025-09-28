@@ -171,7 +171,7 @@ function CategoryScroller() {
 
   return (
     <section className="w-full">
-      <h2 className="mb-2 text-center text-lg font-medium">Kategorier</h2>
+      <h2 className="mb-4 text-center text-xl font-semibold">Kategorier</h2>
 
       <nav
         aria-label="Kategorier"

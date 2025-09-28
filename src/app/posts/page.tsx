@@ -72,7 +72,7 @@ export default async function PostsPage({
           </div>
         </div>
 
-        <div className="mt-2 flex justify-end gap-2">
+        <div className="mt-4 flex justify-end gap-3">
           {/* Clear keeps you on /posts and preserves category if present */}
           <a
             href={

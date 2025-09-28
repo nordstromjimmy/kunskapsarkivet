@@ -70,7 +70,7 @@ export default async function HomePage({ searchParams }: PageProps) {
         href="/posts"
         className="rounded-lg px-4 py-2 text-sm bg-slate-900 text-white hover:bg-slate-800 cursor-pointer"
       >
-        Se fler ämnen
+        Visa alla ämnen
       </Link>
     </section>
   );
