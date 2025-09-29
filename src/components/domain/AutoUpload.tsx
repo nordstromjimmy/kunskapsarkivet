@@ -52,9 +52,9 @@ export default function AutoUpload(props: Props) {
             onChange={(e) => {
               const f = e.currentTarget.files?.[0];
               if (!f) return;
-              // client-side guard
-              if (f.size > 12 * 1024 * 1024) {
-                alert("Filen är för stor (max 12MB).");
+              // client-side guard (25mb)
+              if (f.size > 24 * 1024 * 1024) {
+                alert("Filen är för stor (max 25MB).");
                 e.currentTarget.value = "";
                 setFileName("");
                 return;

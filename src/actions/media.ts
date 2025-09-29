@@ -3,7 +3,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import sharp from "sharp";
 
-const MAX_UPLOAD_BYTES = 12 * 1024 * 1024; // 12MB client+server guard
+//const MAX_UPLOAD_BYTES = 25 * 1024 * 1024; // 25MB client+server guard
 const MAX_W = 1600;
 const MAX_H = 1600;
 const OUTPUT_QUALITY = 82; // WebP quality
@@ -29,7 +29,8 @@ export async function uploadTopicImageAction(
   // basic guards (no throws; action must return void)
   if (!(file instanceof File)) return;
   if (!topicId && !draftKey) return;
-  if (file.size > MAX_UPLOAD_BYTES) return;
+  // Set max file size limit
+  //if (file.size > MAX_UPLOAD_BYTES) return;
 
   // allowlist
   const okTypes = [
@@ -52,7 +53,10 @@ export async function uploadTopicImageAction(
     fit: "inside",
     withoutEnlargement: true,
   });
-  const webp = await pipeline.webp({ quality: OUTPUT_QUALITY }).toBuffer();
+
+  const webp = await pipeline
+    .webp({ quality: OUTPUT_QUALITY, effort: 4 })
+    .toBuffer();
   const outMeta = await sharp(webp).metadata();
 
   const width = outMeta.width ?? meta.width ?? null;
@@ -169,5 +173,92 @@ export async function deleteMediaAction(formData: FormData): Promise<void> {
   if (slug) {
     revalidatePath(`/post/${slug}`);
     revalidatePath(`/post/${slug}/edit`);
+  }
+}
+
+export async function claimDraftMedia(draftKey: string, topicId: string) {
+  if (!draftKey) return;
+
+  const sb = await supabaseServer();
+
+  // Find staged rows
+  const { data: rows, error } = await sb
+    .from("topic_media")
+    .select("id, bucket, path")
+    .eq("draft_key", draftKey);
+
+  if (error) throw error;
+  if (!rows?.length) return;
+
+  for (const m of rows) {
+    const filename = m.path.split("/").pop()!;
+    const destPath = `topics/${topicId}/${filename}`;
+
+    // Try move (same bucket). If move is unsupported, fallback to copy+remove.
+    let moved = false;
+    const { error: moveErr } = await sb.storage
+      .from(m.bucket)
+      .move(m.path, destPath);
+    if (!moveErr) moved = true;
+
+    if (!moved) {
+      const { error: copyErr } = await sb.storage
+        .from(m.bucket)
+        .copy(m.path, destPath);
+      if (!copyErr) {
+        await sb.storage.from(m.bucket).remove([m.path]);
+        moved = true;
+      }
+    }
+
+    if (!moved) continue; // keep row pointing at drafts if move failed
+
+    await sb
+      .from("topic_media")
+      .update({ topic_id: topicId, draft_key: null, path: destPath })
+      .eq("id", m.id);
+  }
+}
+
+/** Move all draft media for a topic into topics/{topicId}/... and clear draft_key. */
+export async function promoteDraftMediaForTopic(topicId: string) {
+  const sb = await supabaseServer();
+
+  // Find rows still tied to drafts for this topic
+  const { data: rows, error } = await sb
+    .from("topic_media")
+    .select("id, bucket, path")
+    .eq("topic_id", topicId)
+    .not("draft_key", "is", null); // i.e., draft_key IS NOT NULL
+
+  if (error || !rows?.length) return;
+
+  for (const m of rows) {
+    const filename = m.path.split("/").pop()!;
+    const destPath = `topics/${topicId}/${filename}`;
+
+    // Move within same bucket (fallback: copy+remove)
+    let moved = false;
+    const { error: moveErr } = await sb.storage
+      .from(m.bucket)
+      .move(m.path, destPath);
+    if (!moveErr) moved = true;
+
+    if (!moved) {
+      const { error: copyErr } = await sb.storage
+        .from(m.bucket)
+        .copy(m.path, destPath);
+      if (!copyErr) {
+        await sb.storage.from(m.bucket).remove([m.path]);
+        moved = true;
+      }
+    }
+
+    if (!moved) continue;
+
+    await sb
+      .from("topic_media")
+      .update({ draft_key: null, path: destPath })
+      .eq("id", m.id);
   }
 }

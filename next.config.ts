@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   experimental: {
     serverActions: {
-      bodySizeLimit: "10mb", // raise from 1 MB -> pick what you need (e.g. "8mb", "20mb")
+      bodySizeLimit: "25mb", // raise from 1 MB -> pick what you need (e.g. "8mb", "20mb")
     },
   },
   images: {
