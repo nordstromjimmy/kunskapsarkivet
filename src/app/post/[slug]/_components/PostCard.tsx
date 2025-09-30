@@ -47,7 +47,7 @@ export function PostCard({ post }: { post: Post }) {
           <span className="font-medium">{post.author}</span>
           <Link
             href={`/post/${post.slug ?? post.id}`}
-            className="rounded-md bg-slate-900 text-white px-3 py-1.5 text-xs transition-colors hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300"
+            className="rounded-md border-1 text-black px-3 py-1.5 text-xs transition-colors hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300"
           >
             Läs mer
           </Link>
