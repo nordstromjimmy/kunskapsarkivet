@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { supabaseServer } from "@/server/db/supabase-server";
-import { DeleteButton } from "@/components/domain/DeleteButton";
 import { FavoriteButton } from "@/components/domain/FavoriteButton";
 import { deleteTopicBySlugAction } from "@/actions/topics";
 import TopicMediaList from "@/components/domain/TopicMediaList";
+import DeleteButton from "@/components/domain/DeleteButton";
 
 export const dynamic = "force-dynamic";
 
@@ -67,12 +67,12 @@ export default async function TopicPage({ params }: PageProps) {
               href={`/post/${slug}/edit`}
               className="rounded-md border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-50"
             >
-              Redigera ämne
+              Redigera
             </Link>
 
             <form action={deleteTopicBySlugAction}>
               <input type="hidden" name="slug" value={slug} />
-              <DeleteButton />
+              <DeleteButton>Radera</DeleteButton>
             </form>
           </div>
         )}

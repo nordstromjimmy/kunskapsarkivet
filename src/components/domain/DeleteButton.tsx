@@ -1,17 +1,71 @@
 "use client";
+import { useRef, useState, useTransition } from "react";
+import ConfirmModal from "@/components/ui/ConfirmModal";
 
-export function DeleteButton() {
-  const onClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (!confirm("Är du säker på att du vill radera detta ämne?")) {
-      e.preventDefault();
-    }
+type Props = {
+  children?: React.ReactNode;
+  className?: string;
+  formId?: string; // optional: force-submit a specific form by id
+  confirmTitle?: string;
+  confirmText?: React.ReactNode;
+  confirmLabel?: string;
+  cancelLabel?: string;
+};
+
+export default function DeleteButton({
+  children = "Radera",
+  className = "",
+  formId,
+  confirmTitle = "Radera inlägg?",
+  confirmText = "Detta tar bort inlägget och alla dess bilder. Åtgärden kan inte ångras.",
+  confirmLabel = "Radera",
+  cancelLabel = "Avbryt",
+}: Props) {
+  const [open, setOpen] = useState(false);
+  const [submitting, startTransition] = useTransition();
+  const btnRef = useRef<HTMLButtonElement | null>(null);
+
+  const onConfirm = () => {
+    // prevent double clicks
+    if (submitting) return;
+
+    startTransition(() => {
+      // Find the target form
+      const form: HTMLFormElement | null = formId
+        ? (document.getElementById(formId) as HTMLFormElement | null)
+        : (btnRef.current?.closest("form") as HTMLFormElement | null);
+
+      setOpen(false);
+      form?.requestSubmit();
+    });
   };
+
   return (
-    <button
-      onClick={onClick}
-      className="rounded-md bg-rose-600 px-3 py-1.5 text-sm text-white hover:bg-rose-800 cursor-pointer"
-    >
-      Radera ämne
-    </button>
+    <>
+      <button
+        ref={btnRef}
+        type="button"
+        onClick={() => setOpen(true)}
+        disabled={submitting}
+        className={[
+          "rounded-lg border border-rose-300 px-3 py-1.5 text-sm text-rose-700 hover:bg-rose-50 cursor-pointer",
+          submitting ? "opacity-60 cursor-not-allowed" : "",
+          className,
+        ].join(" ")}
+      >
+        {children}
+      </button>
+
+      <ConfirmModal
+        open={open}
+        title={confirmTitle}
+        description={confirmText}
+        confirmLabel={confirmLabel}
+        cancelLabel={cancelLabel}
+        tone="danger"
+        onCancel={() => setOpen(false)}
+        onConfirm={onConfirm}
+      />
+    </>
   );
 }
