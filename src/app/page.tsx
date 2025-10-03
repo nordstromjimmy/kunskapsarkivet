@@ -39,7 +39,7 @@ export default async function HomePage({ searchParams }: PageProps) {
           </h1>
           <p className="mx-auto mt-3 max-w-2xl text-center text-slate-600">
             Några blandade inlägg från arkivet visas nedan. <br></br> Sidan
-            byggs löpande – fler ämnen läggs till eftersom.
+            byggs löpande – fler inlägg läggs till eftersom.
           </p>
           <div className="mt-6 flex justify-center">
             <span className="rounded-full bg-rose-100 px-3 py-1 text-sm font-medium text-rose-700">
@@ -70,7 +70,7 @@ export default async function HomePage({ searchParams }: PageProps) {
         href="/posts"
         className="rounded-lg px-4 py-2 text-sm bg-slate-900 text-white hover:bg-slate-800 cursor-pointer"
       >
-        Visa alla ämnen
+        Visa alla inlägg
       </Link>
     </section>
   );

@@ -54,12 +54,12 @@ export function Navbar({ user }: { user: User | null }) {
                 <Link href="/profile" className="hover:text-slate-900">
                   Min sida
                 </Link>
-                {/* NEW: Nytt ämne */}
+                {/* NEW: Nytt inlägg */}
                 <Link
                   href="/new"
                   className="rounded-md px-3 py-2 hover:bg-slate-50 cursor-pointer"
                 >
-                  Nytt ämne
+                  Nytt inlägg
                 </Link>
                 <button
                   onClick={handleLogout}
@@ -111,15 +111,15 @@ export function Navbar({ user }: { user: User | null }) {
                     className="rounded-md px-3 py-2 hover:bg-slate-50"
                     onClick={() => setOpen(false)}
                   >
-                    Profil
+                    Min sida
                   </Link>
-                  {/* NEW: Nytt ämne (mobile) */}
+                  {/* NEW: Nytt inlägg (mobile) */}
                   <Link
                     href="/new"
                     className="rounded-md px-3 py-2 hover:bg-slate-50"
                     onClick={() => setOpen(false)}
                   >
-                    Nytt ämne
+                    Nytt inlägg
                   </Link>
                   <button
                     onClick={() => {

@@ -62,7 +62,7 @@ export default async function PostsPage({
           <input
             name="q"
             defaultValue={query}
-            placeholder="Sök ämne…"
+            placeholder="Sök inlägg…"
             className="w-full rounded-xl border border-slate-300 pl-9 pr-28 py-2.5 text-sm shadow-sm
                        focus:outline-none focus:ring-2 focus:ring-slate-400/50"
           />

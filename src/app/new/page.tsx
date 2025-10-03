@@ -35,12 +35,12 @@ export default async function NewTopicPage({
   return (
     <section className="max-w-2xl">
       <h1 className="text-xl font-semibold tracking-tight">
-        Lägg till nytt ämne
+        Skapa nytt inlägg
       </h1>
 
       {!user && (
         <p className="mt-2 text-sm text-slate-600">
-          Du behöver vara inloggad för att publicera nya ämnen.
+          Du behöver vara inloggad för att publicera nya inlägg.
         </p>
       )}
 

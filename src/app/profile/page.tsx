@@ -58,9 +58,9 @@ export default async function ProfilePage() {
       </header>
 
       <div className="space-y-4">
-        <h2 className="text-lg font-medium">Dina ämnen</h2>
+        <h2 className="text-lg font-medium">Dina inlägg</h2>
         {(topics ?? []).length === 0 ? (
-          <p className="text-sm text-slate-600">Inga ämnen ännu.</p>
+          <p className="text-sm text-slate-600">Inga inlägg ännu.</p>
         ) : (
           <ul className="space-y-2">
             {topics!.map((t) => (
