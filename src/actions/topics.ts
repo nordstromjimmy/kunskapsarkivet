@@ -11,15 +11,12 @@ import { revalidatePath } from "next/cache";
  */
 export async function createTopicFromFormAction(formData: FormData) {
   "use server";
-  const supabase = await supabaseServer(); // ← if your helper is sync, drop the await
 
+  const supabase = await supabaseServer();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login?next=/new");
-  }
+  if (!user) redirect("/login?next=/new");
 
   const title = String(formData.get("title") || "")
     .slice(0, 200)
@@ -33,27 +30,23 @@ export async function createTopicFromFormAction(formData: FormData) {
   const is_published = formData.get("is_published") === "on";
   const draft_key = String(formData.get("draft_key") || "").trim();
 
-  // minimal validation (no zod)
   if (!title || !body_md) {
     redirect(`/new?error=${encodeURIComponent("Titel och innehåll krävs")}`);
   }
-
   const category = toCategory(rawCategory);
   if (!category) {
     redirect(`/new?error=${encodeURIComponent("Ogiltig kategori")}`);
   }
 
-  // Compute a unique slug (base + -2, -3, ...)
+  // unique slug
   const baseSlug = slugify(title);
   const { data: siblings, error: siblingsErr } = await supabase
     .from("topics")
     .select("slug")
     .like("slug", `${baseSlug}%`);
-
   if (siblingsErr) {
     redirect(`/new?error=${encodeURIComponent(siblingsErr.message)}`);
   }
-
   const taken = new Set((siblings ?? []).map((s: { slug: string }) => s.slug));
   let slug = baseSlug;
   if (taken.has(baseSlug)) {
@@ -62,6 +55,7 @@ export async function createTopicFromFormAction(formData: FormData) {
     slug = `${baseSlug}-${i}`;
   }
 
+  // insert topic
   const { data: topic, error: insertErr } = await supabase
     .from("topics")
     .insert({
@@ -76,29 +70,22 @@ export async function createTopicFromFormAction(formData: FormData) {
     })
     .select("id, slug")
     .single();
-
   if (insertErr) {
     redirect(
       `/new?error=${encodeURIComponent(insertErr.message)}${draft_key ? `&draft=${draft_key}` : ""}`
     );
   }
 
-  if (is_published && draft_key) {
+  // 👇 CLAIM DRAFT MEDIA ONCE (no partial update that violates the check constraint)
+  if (draft_key) {
     try {
       await claimDraftMedia(draft_key, topic!.id);
     } catch (e) {
       console.error("claimDraftMedia:error", e);
+      // don't block creation
     }
   }
 
-  if (draft_key) {
-    try {
-      await claimDraftMedia(draft_key, topic!.id); // moves + clears draft_key + updates path
-    } catch (e) {
-      console.error("claimDraftMedia:error", e);
-      // don't block creation on media issues
-    }
-  }
   revalidatePath(`/post/${topic!.slug}`);
   redirect(`/post/${slug}`);
 }
@@ -130,7 +117,7 @@ export async function updateTopicFromFormAction(formData: FormData) {
     );
   }
 
-  // Load current topic to get id + previous publish state
+  // Load current (id + prior publish)
   const { data: current, error: curErr } = await sb
     .from("topics")
     .select("id, is_published")
@@ -142,7 +129,7 @@ export async function updateTopicFromFormAction(formData: FormData) {
     );
   }
 
-  // Compute final slug if changed
+  // compute final slug if changed
   let finalSlug = originalSlug;
   if (updateSlug && updateSlug !== originalSlug) {
     const base = slugify(updateSlug);
@@ -150,13 +137,11 @@ export async function updateTopicFromFormAction(formData: FormData) {
       .from("topics")
       .select("slug")
       .like("slug", `${base}%`);
-
     if (siblingsErr) {
       redirect(
         `/post/${originalSlug}/edit?err=${encodeURIComponent(siblingsErr.message)}`
       );
     }
-
     const taken = new Set(
       (siblings ?? []).map((s: { slug: string }) => s.slug)
     );
@@ -168,7 +153,7 @@ export async function updateTopicFromFormAction(formData: FormData) {
     }
   }
 
-  // Update
+  // update topic (use id for stability)
   const { error } = await sb
     .from("topics")
     .update({
@@ -181,25 +166,23 @@ export async function updateTopicFromFormAction(formData: FormData) {
       is_published,
       updated_at: new Date().toISOString(),
     })
-    .eq("id", current.id); // use id for stability
+    .eq("id", current.id);
   if (error) {
-    // (same retry branch as you had if you want)
     redirect(
       `/post/${originalSlug}/edit?err=${encodeURIComponent(error.message)}`
     );
   }
 
-  // If we just flipped from draft → published, move any remaining draft media
+  // If we just flipped draft → published, promote any leftover draft media (defensive)
   if (!current.is_published && is_published) {
     try {
       await promoteDraftMediaForTopic(current.id);
     } catch (e) {
       console.error("promoteDraftMediaForTopic:error", e);
-      // do not block publish on media move
     }
   }
 
-  // Revalidate both old and new slug pages
+  // revalidate both
   revalidatePath(`/post/${originalSlug}`);
   revalidatePath(`/post/${finalSlug}`);
   revalidatePath(`/post/${finalSlug}/edit`);

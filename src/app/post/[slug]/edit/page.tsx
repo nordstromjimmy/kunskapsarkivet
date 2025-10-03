@@ -1,11 +1,11 @@
 import { notFound, redirect } from "next/navigation";
 import { supabaseServer } from "@/server/db/supabase-server";
-import { categories } from "@/lib/schema/post";
 import { updateTopicFromFormAction } from "@/actions/topics";
 import { uploadTopicImageAction } from "@/actions/media";
 import AutoUpload from "@/components/domain/AutoUpload";
 import TopicMediaList from "@/components/domain/TopicMediaList";
 import FormSubmitButton from "@/components/ui/FormSubmitButton";
+import EditTopicFormClient from "./EditTopicFormClient";
 
 export const dynamic = "force-dynamic";
 
@@ -48,78 +48,21 @@ export default async function EditTopicPage({
         </p>
       )}
 
-      <form
-        id="create-topic-form"
+      <EditTopicFormClient
+        id="edit-topic-form"
         action={updateTopicFromFormAction}
-        className="mt-6 space-y-4"
-      >
-        <input type="hidden" name="original_slug" value={slug} />
-
-        <div>
-          <label className="mb-1 block text-sm">Titel</label>
-          <input
-            name="title"
-            defaultValue={topic.title}
-            required
-            className="w-full rounded-lg border px-3 py-2"
-          />
-        </div>
-
-        <div>
-          <label className="mb-1 block text-sm">Slug (valfritt)</label>
-          <input
-            name="slug"
-            placeholder={topic.slug}
-            className="w-full rounded-lg border px-3 py-2"
-          />
-          <p className="mt-1 text-xs text-slate-500">
-            Lämna tomt för att behålla samma slug.
-          </p>
-        </div>
-
-        <div>
-          <label className="mb-1 block text-sm">Kategori</label>
-          <select
-            name="category"
-            defaultValue={topic.category}
-            className="w-full rounded-lg border px-3 py-2"
-          >
-            {categories.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="mb-1 block text-sm">Utdrag</label>
-          <input
-            name="excerpt"
-            defaultValue={topic.excerpt ?? ""}
-            className="w-full rounded-lg border px-3 py-2"
-          />
-        </div>
-
-        <div>
-          <label className="mb-1 block text-sm">Författare att visa</label>
-          <input
-            name="author_display"
-            defaultValue={topic.author_display ?? ""}
-            className="w-full rounded-lg border px-3 py-2"
-          />
-        </div>
-
-        <div>
-          <label className="mb-1 block text-sm">Innehåll (Markdown)</label>
-          <textarea
-            name="body_md"
-            defaultValue={topic.body_md ?? ""}
-            required
-            className="h-56 w-full rounded-lg border px-3 py-2"
-          />
-        </div>
-      </form>
+        disabled={!user}
+        topic={{
+          originalSlug: slug,
+          slug: topic.slug,
+          title: topic.title,
+          excerpt: topic.excerpt,
+          category: topic.category,
+          body_md: topic.body_md ?? "",
+          author_display: topic.author_display,
+          is_published: !!topic.is_published,
+        }}
+      />
 
       <section className="mt-10 space-y-4">
         <h2 className="text-lg font-medium">Ladda upp bilder</h2>
@@ -141,7 +84,7 @@ export default async function EditTopicPage({
       </section>
 
       <div className="flex flex-col items-center gap-2 border-t mt-12 py-8">
-        <div className="flex flex-row items-center gap-2 py-2">
+        {/*         <div className="flex flex-row items-center gap-2 py-2">
           <input
             id="pub"
             type="checkbox"
@@ -154,9 +97,9 @@ export default async function EditTopicPage({
           <label htmlFor="pub" className="text-sm">
             Publicera
           </label>
-        </div>
+        </div> */}
         <FormSubmitButton
-          formId="create-topic-form"
+          formId="edit-topic-form"
           pendingText="Sparar…"
           disabled={disabled}
           className="cursor-pointer rounded-lg bg-slate-900 text-white hover:bg-slate-800"

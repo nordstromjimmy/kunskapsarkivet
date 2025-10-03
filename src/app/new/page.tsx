@@ -7,6 +7,7 @@ import { uploadTopicImageAction } from "@/actions/media";
 import TopicMediaList from "@/components/domain/TopicMediaList";
 import AutoUpload from "@/components/domain/AutoUpload";
 import FormSubmitButton from "@/components/ui/FormSubmitButton";
+import NewTopicFormClient from "./NewTopicFormClient";
 
 export const dynamic = "force-dynamic";
 
@@ -60,69 +61,13 @@ export default async function NewTopicPage({
         </div>
       )}
 
-      <form
+      <NewTopicFormClient
         id="create-topic-form"
         action={createTopicFromFormAction}
+        disabled={!user}
+        draftKey={draftKey}
         className="mt-6 space-y-4"
-      >
-        <input type="hidden" name="draft_key" value={draftKey} />
-
-        <div>
-          <label className="mb-1 block text-sm">Titel</label>
-          <input
-            name="title"
-            required
-            disabled={disabled}
-            className="w-full rounded-lg border px-3 py-2"
-          />
-        </div>
-
-        <div>
-          <label className="mb-1 block text-sm">Kategori</label>
-          <select
-            name="category"
-            disabled={disabled}
-            className="w-full rounded-lg border px-3 py-2"
-          >
-            {categories.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="mb-1 block text-sm">
-            Utdrag (kort sammanfattning)
-          </label>
-          <input
-            name="excerpt"
-            disabled={disabled}
-            className="w-full rounded-lg border px-3 py-2"
-          />
-        </div>
-
-        <div>
-          <label className="mb-1 block text-sm">Författare att visa</label>
-          <input
-            name="author_display"
-            disabled={disabled}
-            className="w-full rounded-lg border px-3 py-2"
-            placeholder="t.ex. Karin, Härnösand"
-          />
-        </div>
-
-        <div>
-          <label className="mb-1 block text-sm">Innehåll (Markdown)</label>
-          <textarea
-            name="body_md"
-            required
-            disabled={disabled}
-            className="h-56 w-full rounded-lg border px-3 py-2"
-          />
-        </div>
-      </form>
+      />
 
       <section className="mt-10 space-y-4">
         <h2 className="text-lg font-medium">Ladda upp bilder</h2>
@@ -136,7 +81,7 @@ export default async function NewTopicPage({
       </section>
 
       <div className="flex flex-col items-center gap-2 border-t mt-12 py-12">
-        <div className="flex flex-row items-center gap-2 py-2">
+        {/*         <div className="flex flex-row items-center gap-2 py-2">
           <input
             id="pub"
             type="checkbox"
@@ -149,7 +94,7 @@ export default async function NewTopicPage({
           <label htmlFor="pub" className="text-sm">
             Publicera direkt
           </label>
-        </div>
+        </div> */}
         <FormSubmitButton
           formId="create-topic-form"
           pendingText="Sparar…"
