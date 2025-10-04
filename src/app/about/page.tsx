@@ -6,7 +6,7 @@ export const metadata = {
 export default function AboutPage() {
   return (
     <article className="prose max-w-none">
-      <h1>Om Kunskapsarvet</h1>
+      <h1 className="text-lg font-semibold">Om Kunskapsarvet</h1>
       <p>
         Kunskapsarvet är ett levande, gemenskapsdrivet arkiv för svensk
         vardagskunskap och traditioner – från slöjd och matförvaring till

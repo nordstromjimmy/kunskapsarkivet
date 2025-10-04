@@ -13,6 +13,7 @@ export function Navbar({ user }: { user: User | null }) {
     pathname === "/login" ||
     pathname === "/register" ||
     pathname === "/reset" ||
+    pathname === "/about" ||
     pathname.startsWith("/reset/");
 
   useEffect(() => {
