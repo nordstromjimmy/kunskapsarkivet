@@ -3,7 +3,6 @@ import Link from "next/link";
 
 export function PostCard({ post }: { post: Post }) {
   const pal = categoryColors[post.category] ?? {
-    bg: "bg-slate-100",
     text: "text-slate-700",
   };
 
@@ -20,13 +19,19 @@ export function PostCard({ post }: { post: Post }) {
         <div className="mb-2 flex items-center justify-between">
           <span
             className={[
-              "inline-flex items-center gap-2 rounded-full px-2.5 py-1 text-xs font-medium",
-              pal.bg,
-              pal.text,
+              "inline-flex items-center gap-2 rounded-full px-2.5 py-1",
+              "text-xs font-medium text-slate-700 bg-white",
             ].join(" ")}
           >
-            ● {post.category}
+            <span
+              className={["h-2.5 w-2.5 rounded-full bg-current", pal.text].join(
+                " "
+              )}
+              aria-hidden="true"
+            />
+            {post.category}
           </span>
+
           <time className="text-xs text-slate-500" dateTime={post.date}>
             {new Date(post.date).toLocaleDateString("sv-SE")}
           </time>

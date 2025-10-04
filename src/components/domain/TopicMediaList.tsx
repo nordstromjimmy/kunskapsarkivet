@@ -42,7 +42,7 @@ export default async function TopicMediaList(props: Props) {
         .map((m) => (
           <figure key={m.id} className="my-6">
             <div
-              className="relative overflow-hidden rounded-lg border"
+              className="relative overflow-hidden"
               style={{ aspectRatio: "3 / 2" }}
             >
               <Image
@@ -65,7 +65,7 @@ export default async function TopicMediaList(props: Props) {
               />
             ) : (
               m.alt && (
-                <figcaption className="mt-2 text-md text-slate-500">
+                <figcaption className="mt-2 text-md text-center text-slate-500">
                   {m.alt}
                 </figcaption>
               )

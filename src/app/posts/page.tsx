@@ -29,7 +29,8 @@ export default async function PostsPage({
   });
 
   return (
-    <section className="space-y-6">
+    <section className="space-y-2">
+      <h1 className="text-lg font-semibold text-center">Sök inlägg</h1>
       {/* Search bar */}
       <form
         role="search"
@@ -62,7 +63,7 @@ export default async function PostsPage({
           <input
             name="q"
             defaultValue={query}
-            placeholder="Sök inlägg…"
+            placeholder="Sök…"
             className="w-full rounded-xl border border-slate-300 pl-9 pr-28 py-2.5 text-sm shadow-sm
                        focus:outline-none focus:ring-2 focus:ring-slate-400/50"
           />

@@ -49,7 +49,7 @@ export default async function TopicPage({ params }: PageProps) {
       <p className="text-xs text-slate-500">{topic.category}</p>
 
       <header className="mb-4">
-        <h1>{topic.title}</h1>
+        <h1 className="test-md font-semibold">{topic.title}</h1>
         <p className="text-sm text-slate-500">
           {topic.author_display ?? "Okänd"} ·{" "}
           {new Date(topic.created_at).toLocaleDateString("sv-SE")}
@@ -80,7 +80,7 @@ export default async function TopicPage({ params }: PageProps) {
 
       <hr />
 
-      <div className="whitespace-pre-wrap">{topic.body_md}</div>
+      <div className="whitespace-pre-wrap py-2">{topic.body_md}</div>
 
       <TopicMediaList mode="topic" topicId={topic.id} ownerSigned={isOwner} />
     </article>
