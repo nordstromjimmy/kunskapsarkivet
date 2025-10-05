@@ -82,7 +82,21 @@ export default async function TopicPage({ params }: PageProps) {
 
       <div className="whitespace-pre-wrap py-2">{topic.body_md}</div>
 
-      <TopicMediaList mode="topic" topicId={topic.id} ownerSigned={isOwner} />
+      {/* Images first */}
+      <TopicMediaList
+        mode="topic"
+        topicId={topic.id}
+        ownerSigned={isOwner}
+        kinds={["image"]}
+      />
+
+      {/* Then videos */}
+      <TopicMediaList
+        mode="topic"
+        topicId={topic.id}
+        ownerSigned={isOwner}
+        kinds={["youtube"]}
+      />
     </article>
   );
 }

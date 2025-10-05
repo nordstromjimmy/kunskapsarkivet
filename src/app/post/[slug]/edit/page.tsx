@@ -1,11 +1,12 @@
 import { notFound, redirect } from "next/navigation";
 import { supabaseServer } from "@/server/db/supabase-server";
 import { updateTopicFromFormAction } from "@/actions/topics";
-import { uploadTopicImageAction } from "@/actions/media";
+import { addYoutubeAction, uploadTopicImageAction } from "@/actions/media";
 import AutoUpload from "@/components/domain/AutoUpload";
 import TopicMediaList from "@/components/domain/TopicMediaList";
 import FormSubmitButton from "@/components/ui/FormSubmitButton";
 import EditTopicFormClient from "./EditTopicFormClient";
+import AddYoutube from "@/components/domain/AddYoutube";
 
 export const dynamic = "force-dynamic";
 
@@ -74,30 +75,40 @@ export default async function EditTopicPage({
           action={uploadTopicImageAction}
         />
 
+        {/* IMAGES ONLY */}
         <TopicMediaList
           mode="topic"
           topicId={topic.id}
           ownerSigned
           editable
           slug={topic.slug}
+          kinds={["image"]}
+        />
+      </section>
+
+      <section className="mt-12 space-y-4">
+        <h2 className="text-lg font-medium">Lägg till video</h2>
+
+        <AddYoutube
+          mode="topic"
+          topicId={topic.id}
+          slug={topic.slug}
+          action={addYoutubeAction}
+          disabled={disabled}
+        />
+
+        {/* VIDEOS ONLY */}
+        <TopicMediaList
+          mode="topic"
+          topicId={topic.id}
+          ownerSigned
+          editable
+          slug={topic.slug}
+          kinds={["youtube"]}
         />
       </section>
 
       <div className="flex flex-col items-center gap-2 border-t mt-12 py-8">
-        {/*         <div className="flex flex-row items-center gap-2 py-2">
-          <input
-            id="pub"
-            type="checkbox"
-            name="is_published"
-            className="h-4 w-4"
-            defaultChecked
-            form="create-topic-form"
-            disabled={disabled}
-          />
-          <label htmlFor="pub" className="text-sm">
-            Publicera
-          </label>
-        </div> */}
         <FormSubmitButton
           formId="edit-topic-form"
           pendingText="Sparar…"

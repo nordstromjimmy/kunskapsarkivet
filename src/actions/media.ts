@@ -181,20 +181,29 @@ export async function claimDraftMedia(draftKey: string, topicId: string) {
 
   const sb = await supabaseServer();
 
-  // Find staged rows
+  // include 'kind' so we can branch
   const { data: rows, error } = await sb
     .from("topic_media")
-    .select("id, bucket, path")
+    .select("id, kind, bucket, path")
     .eq("draft_key", draftKey);
 
   if (error) throw error;
   if (!rows?.length) return;
 
   for (const m of rows) {
+    // 🟡 YouTube: no storage move; just attach row to topic
+    if (m.kind === "youtube") {
+      await sb
+        .from("topic_media")
+        .update({ topic_id: topicId, draft_key: null })
+        .eq("id", m.id);
+      continue;
+    }
+
+    // 🖼️ Images: move/copy within the bucket then update path + clear draft_key
     const filename = m.path.split("/").pop()!;
     const destPath = `topics/${topicId}/${filename}`;
 
-    // Try move (same bucket). If move is unsupported, fallback to copy+remove.
     let moved = false;
     const { error: moveErr } = await sb.storage
       .from(m.bucket)
@@ -211,7 +220,7 @@ export async function claimDraftMedia(draftKey: string, topicId: string) {
       }
     }
 
-    if (!moved) continue; // keep row pointing at drafts if move failed
+    if (!moved) continue;
 
     await sb
       .from("topic_media")
@@ -224,20 +233,26 @@ export async function claimDraftMedia(draftKey: string, topicId: string) {
 export async function promoteDraftMediaForTopic(topicId: string) {
   const sb = await supabaseServer();
 
-  // Find rows still tied to drafts for this topic
   const { data: rows, error } = await sb
     .from("topic_media")
-    .select("id, bucket, path")
+    .select("id, kind, bucket, path")
     .eq("topic_id", topicId)
-    .not("draft_key", "is", null); // i.e., draft_key IS NOT NULL
+    .not("draft_key", "is", null); // still tied to draft
 
   if (error || !rows?.length) return;
 
   for (const m of rows) {
+    if (m.kind === "youtube") {
+      await sb
+        .from("topic_media")
+        .update({ draft_key: null }) // no storage move, just clear draft_key
+        .eq("id", m.id);
+      continue;
+    }
+
     const filename = m.path.split("/").pop()!;
     const destPath = `topics/${topicId}/${filename}`;
 
-    // Move within same bucket (fallback: copy+remove)
     let moved = false;
     const { error: moveErr } = await sb.storage
       .from(m.bucket)
@@ -260,5 +275,82 @@ export async function promoteDraftMediaForTopic(topicId: string) {
       .from("topic_media")
       .update({ draft_key: null, path: destPath })
       .eq("id", m.id);
+  }
+}
+
+function extractYoutubeId(input: string): string | null {
+  const url = input.trim();
+
+  // Handle full URLs and bare IDs
+  // https://www.youtube.com/watch?v=VIDEOID
+  // https://youtu.be/VIDEOID
+  // https://www.youtube.com/embed/VIDEOID
+  // https://www.youtube.com/shorts/VIDEOID
+  const patterns = [
+    /[?&]v=([A-Za-z0-9_-]{11})/,
+    /youtu\.be\/([A-Za-z0-9_-]{11})/,
+    /\/embed\/([A-Za-z0-9_-]{11})/,
+    /\/shorts\/([A-Za-z0-9_-]{11})/,
+  ];
+  for (const re of patterns) {
+    const m = url.match(re);
+    if (m?.[1]) return m[1];
+  }
+  // If someone pasted just the 11-char ID
+  if (/^[A-Za-z0-9_-]{11}$/.test(url)) return url;
+  return null;
+}
+
+export async function addYoutubeAction(formData: FormData): Promise<void> {
+  "use server";
+
+  const sb = await supabaseServer();
+  const {
+    data: { user },
+  } = await sb.auth.getUser();
+  if (!user) redirect("/login?next=/new");
+
+  const topicId = String(formData.get("topic_id") || "");
+  const draftKey = String(formData.get("draft_key") || "");
+  const slug = String(formData.get("slug") || ""); // optional (for edit page revalidate)
+
+  const rawUrl = String(formData.get("youtube_url") || "").trim();
+  const alt = String(formData.get("alt") || "")
+    .slice(0, 200)
+    .trim();
+
+  if (!rawUrl || (!topicId && !draftKey)) return;
+
+  const vid = extractYoutubeId(rawUrl);
+  if (!vid) {
+    // silently no-op, or redirect back with error if you prefer:
+    // redirect(`/post/${slug}/edit?err=${encodeURIComponent("Ogiltig YouTube-länk")}`)
+    return;
+  }
+
+  const payload = {
+    topic_id: topicId || null,
+    draft_key: topicId ? null : draftKey,
+    bucket: "external",
+    path: `youtube/${vid}`,
+    alt: alt || null,
+    width: 1280,
+    height: 720,
+    bytes: null as number | null,
+    mime_type: "text/youtube",
+    created_by: user.id,
+    kind: "youtube" as const,
+  };
+
+  const { error } = await sb.from("topic_media").insert(payload);
+  if (error) {
+    console.error("insert youtube error:", error);
+    return;
+  }
+
+  if (draftKey) revalidatePath("/new");
+  if (slug) {
+    revalidatePath(`/post/${slug}`);
+    revalidatePath(`/post/${slug}/edit`);
   }
 }

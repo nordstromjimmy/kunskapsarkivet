@@ -17,7 +17,7 @@ export default function DeleteButton({
   className = "",
   formId,
   confirmTitle = "Radera inlägg?",
-  confirmText = "Detta tar bort inlägget och alla dess bilder. Åtgärden kan inte ångras.",
+  confirmText = "Detta tar bort inlägget och alla dess bilder/videos. Åtgärden kan inte ångras.",
   confirmLabel = "Radera",
   cancelLabel = "Avbryt",
 }: Props) {

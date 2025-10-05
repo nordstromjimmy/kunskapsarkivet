@@ -2,11 +2,12 @@ import crypto from "node:crypto";
 import { redirect } from "next/navigation";
 import { supabaseServer } from "@/server/db/supabase-server";
 import { createTopicFromFormAction } from "@/actions/topics";
-import { uploadTopicImageAction } from "@/actions/media";
+import { addYoutubeAction, uploadTopicImageAction } from "@/actions/media";
 import TopicMediaList from "@/components/domain/TopicMediaList";
 import AutoUpload from "@/components/domain/AutoUpload";
 import FormSubmitButton from "@/components/ui/FormSubmitButton";
 import NewTopicFormClient from "./NewTopicFormClient";
+import AddYoutube from "@/components/domain/AddYoutube";
 
 export const dynamic = "force-dynamic";
 
@@ -76,7 +77,28 @@ export default async function NewTopicPage({
           disabled={disabled}
           action={uploadTopicImageAction}
         />
-        <TopicMediaList mode="draft" draftKey={draftKey} editable />
+        <TopicMediaList
+          mode="draft"
+          draftKey={draftKey}
+          editable
+          kinds={["image"]}
+        />
+      </section>
+
+      <section className="mt-12 space-y-4">
+        <h2 className="text-lg font-medium">Lägg till video</h2>
+        <AddYoutube
+          mode="draft"
+          draftKey={draftKey}
+          action={addYoutubeAction}
+          disabled={disabled}
+        />
+        <TopicMediaList
+          mode="draft"
+          draftKey={draftKey}
+          editable
+          kinds={["youtube"]}
+        />
       </section>
 
       <div className="flex flex-col items-center gap-2 border-t mt-12 py-12">

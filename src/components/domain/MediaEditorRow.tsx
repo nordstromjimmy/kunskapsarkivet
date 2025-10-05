@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useTransition } from "react";
 
 type FormAction = (formData: FormData) => Promise<void> | void;
@@ -48,14 +47,14 @@ export default function MediaEditorRow({
           htmlFor={`alt-${mediaId}`}
           className="block text-sm text-slate-600"
         >
-          Bildtext (valfritt)
+          Beskriv bild/video (valfritt)
         </label>
         <textarea
           id={`alt-${mediaId}`}
           value={alt}
           onChange={(e) => setAlt(e.target.value)}
           rows={3}
-          placeholder="Lägg till bildtext"
+          placeholder="Lägg till text"
           className="w-full resize-y rounded-lg border px-3 py-2 text-sm leading-6 focus:outline-none focus:ring-2 focus:ring-slate-400/50"
           disabled={deleting}
         />
@@ -77,7 +76,7 @@ export default function MediaEditorRow({
               className="inline-flex items-center gap-2 rounded-lg border border-rose-300 px-3 py-1.5 text-sm text-rose-700 hover:bg-rose-50 disabled:opacity-50 cursor-pointer"
             >
               {deleting && <Spinner />}
-              {deleting ? "Raderar…" : "Radera bild"}
+              {deleting ? "Raderar…" : "Radera"}
             </button>
           </div>
         </div>
